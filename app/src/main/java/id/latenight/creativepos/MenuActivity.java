@@ -63,11 +63,13 @@ public class MenuActivity extends AppCompatActivity implements View.OnClickListe
         RadioButton orderHistory = findViewById(R.id.order_history);
         RadioButton customerHistory = findViewById(R.id.customer_history);
         RadioButton admin = findViewById(R.id.admin);
+        RadioButton member = findViewById(R.id.member);
 
         cashier.setOnClickListener(this);
         orderHistory.setOnClickListener(this);
         admin.setOnClickListener(this);
         customerHistory.setOnClickListener(this);
+        member.setOnClickListener(this);
 
         //session.setOpenRegistration("0");
         if(session.getOpenRegistration().isEmpty() || session.getOpenRegistration().equals("0")) {
@@ -210,6 +212,10 @@ public class MenuActivity extends AppCompatActivity implements View.OnClickListe
         }
         if (v.getId() == R.id.customer_history) {
             intent = new Intent(this, CustomerListActivity.class);
+            startActivity(intent);
+        }
+        if (v.getId() == R.id.member) {
+            intent = new Intent(this, MemberListActivity.class);
             startActivity(intent);
         }
         if (v.getId() == R.id.admin) {

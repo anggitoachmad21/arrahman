@@ -127,6 +127,33 @@
                 android:orientation="vertical">
 
                 <RadioButton
+                    android:id="@+id/member"
+                    android:layout_width="@dimen/img_width_height_lg"
+                    android:layout_height="@dimen/img_width_height_lg"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="4dp"
+                    android:background="@drawable/member_card"
+                    android:button="@null"
+                    android:checked="true" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spaceBottom"
+                    android:fontFamily="@font/font_medium"
+                    android:gravity="center"
+                    android:text="Member"
+                    android:textSize="18sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <RadioButton
                     android:id="@+id/admin"
                     android:layout_width="@dimen/img_width_height_lg"
                     android:layout_height="@dimen/img_width_height_lg"

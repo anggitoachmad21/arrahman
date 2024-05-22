@@ -1,7 +1,7 @@
 package id.latenight.creativepos.util;
 
 public class URI {
-    static final String BASE_URL = "https://carwash.cizypos.com/";
+    static final String BASE_URL = "https://devcarwash.cizypos.com/";
 //    static final String BASE_URL = "https://arrahman.cizypos.com/";
 
     public static String API_LOGIN = BASE_URL+"api/cashier/login/";
@@ -13,6 +13,7 @@ public class URI {
     public static String API_CUSTOMER_DETAIL = BASE_URL+"api/cashier/customer_detail/";
     public static String API_ADD_CUSTOMER = BASE_URL+"api/cashier/add_customer/";
     public static String API_CUSTOMER_LIST_HISTORIES = BASE_URL+"api/cashier/customer_list_histories/";
+    public static String API_MEMBER_LIST = BASE_URL+"api/member/get_member_list/";
     public static String API_CUSTOMER_SALES_HISTORIES = BASE_URL+"api/cashier/customer_sales_histories/";
     public static String API_TABLE = BASE_URL+"api/cashier/table/";
     public static String API_PLACE_ORDER = BASE_URL+"api/cashier/place_order/";
@@ -47,4 +48,6 @@ public class URI {
     public static String API_IMAGE_BILL = "assets/images/logo_print.png";
     public static String API_EMPLOYEES = BASE_URL+"api/cashier/employees";
     public static String SAVE_TOKEN_FCM = BASE_URL+"api/cashier/save_token_fcm/";
+
+    public static String SIMPAN_MEMBER = BASE_URL+"api/member/simpan_member";
 } 

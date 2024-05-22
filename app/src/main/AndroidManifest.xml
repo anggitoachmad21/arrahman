@@ -66,6 +66,14 @@
             android:screenOrientation="sensorLandscape" />
         <activity
             android:windowSoftInputMode="adjustPan"
+            android:name="id.latenight.creativepos.AddMemberActivity"
+            android:screenOrientation="sensorLandscape" />
+        <activity
+            android:windowSoftInputMode="adjustPan"
+            android:name="id.latenight.creativepos.MemberListActivity"
+            android:screenOrientation="sensorLandscape" />
+        <activity
+            android:windowSoftInputMode="adjustPan"
             android:name="id.latenight.creativepos.LoginActivity"
             android:screenOrientation="sensorLandscape">
             <intent-filter>
