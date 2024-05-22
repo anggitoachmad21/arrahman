@@ -1,0 +1,805 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/top"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/btn_back"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="18dp"
+                android:background="?attr/homeAsUpIndicator"
+                android:backgroundTint="@color/white" />
+
+            <TextView
+                android:id="@+id/username"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="18dp"
+                android:fontFamily="@font/font_regular"
+                android:text="@string/admin"
+                android:textColor="@color/white" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/imageView2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginBottom="6dp"
+                    app:srcCompat="@drawable/logo_white" />
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/top"
+        android:layout_marginStart="18dp"
+        android:layout_marginTop="18dp"
+        android:baselineAligned="false"
+        android:weightSum="3"
+        tools:context=".MainActivity">
+
+        <RelativeLayout
+            android:id="@+id/lyt_checkout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/lytOrder"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_above="@id/lytBtnOrder"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/spaceBottom"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <RadioGroup
+                        android:id="@+id/radioGroup"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="horizontal"
+                        tools:ignore="UselessParent">
+
+                        <LinearLayout
+                            android:id="@+id/lyt_btn_dine_in"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <RadioButton
+                                android:id="@+id/radioDinein"
+                                android:layout_width="@dimen/img_width_height"
+                                android:layout_height="@dimen/img_width_height"
+                                android:layout_gravity="center"
+                                android:layout_marginBottom="4dp"
+                                android:background="@drawable/btn_radio_dinein"
+                                android:button="@null"
+                                android:checked="true"
+                                android:onClick="onRadioButtonClicked" />
+
+                            <TextView
+                                android:id="@+id/textDinein"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/font_medium"
+                                android:gravity="center"
+                                android:text="@string/dine_in"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/lyt_btn_take_away"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <RadioButton
+                                android:id="@+id/radioTakeaway"
+                                android:layout_width="@dimen/img_width_height"
+                                android:layout_height="@dimen/img_width_height"
+                                android:layout_gravity="center"
+                                android:layout_marginBottom="4dp"
+                                android:background="@drawable/btn_radio_takeaway"
+                                android:button="@null"
+                                android:onClick="onRadioButtonClicked" />
+
+                            <TextView
+                                android:id="@+id/textTakeaway"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/font_medium"
+                                android:gravity="center"
+                                android:text="@string/take_away"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/lyt_btn_taken"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:visibility="gone">
+
+                            <RadioButton
+                                android:id="@+id/radioTaken"
+                                android:layout_width="@dimen/img_width_height"
+                                android:layout_height="@dimen/img_width_height"
+                                android:layout_gravity="center"
+                                android:layout_marginBottom="4dp"
+                                android:background="@drawable/btn_radio_takeaway"
+                                android:button="@null"
+                                android:onClick="onRadioButtonClicked" />
+
+                            <TextView
+                                android:id="@+id/textTaken"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/font_medium"
+                                android:gravity="center"
+                                android:text="@string/taken"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/lyt_btn_delivery"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <RadioButton
+                                android:id="@+id/radioDelivery"
+                                android:layout_width="@dimen/img_width_height"
+                                android:layout_height="@dimen/img_width_height"
+                                android:layout_gravity="center"
+                                android:layout_marginBottom="4dp"
+                                android:background="@drawable/btn_radio_delivery"
+                                android:button="@null"
+                                android:onClick="onRadioButtonClicked" />
+
+                            <TextView
+                                android:id="@+id/textDelivery"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/font_medium"
+                                android:gravity="center"
+                                android:text="@string/delivery"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </RadioGroup>
+
+                </LinearLayout>
+
+
+                <View
+                    android:layout_width="wrap_content"
+                    android:layout_height="1dp"
+                    android:layout_marginBottom="@dimen/spaceBottom"
+                    android:background="@drawable/line"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/textView2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/font_regular"
+                            android:text="@string/select_customer" />
+
+                        <id.latenight.creativepos.util.SearchableSpinner
+                            android:id="@+id/customer"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:spinnerMode="dialog"/>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
+
+                            <AutoCompleteTextView
+                                android:id="@+id/select_customer"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:background="@drawable/edittext_border"
+                                android:focusable="true"
+                                android:focusableInTouchMode="true"
+                                android:hint="Cari Konsumen"
+                                android:textSize="14sp" />
+
+                            <ImageButton
+                                android:id="@+id/btn_add_customer"
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
+                                android:layout_marginLeft="12dp"
+                                android:background="@color/transparent"
+                                android:scaleType="centerInside"
+                                app:srcCompat="@drawable/ic_plus" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/lyt_table"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/textView3"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/font_regular"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:text="@string/select_table" />
+
+                        <androidx.appcompat.widget.AppCompatSpinner
+                            android:id="@+id/table"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:spinnerMode="dialog" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center">
+
+                    <TextView
+                        android:id="@+id/free_wash_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:layout_marginBottom="12dp"
+                        android:fontFamily="@font/font_medium"
+                        android:text="COUNTER"
+                        android:textSize="12sp" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="wrap_content"
+                    android:layout_height="1dp"
+                    android:background="@drawable/line" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_cart"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/lytBtnOrder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingStart="8dp"
+                    android:paddingTop="4dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="4dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:fontFamily="@font/font_regular"
+                        android:text="@string/shipping_price"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/textView10"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="10dp"
+                        android:text="@string/currency" />
+
+                    <EditText
+                        android:id="@+id/shipping"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_weight="0.5"
+                        android:gravity="center"
+                        android:importantForAutofill="no"
+                        android:inputType="number"
+                        android:textSize="14sp" />
+
+                    <Button
+                        android:id="@+id/btn_use_shipping"
+                        android:layout_width="match_parent"
+                        android:layout_height="36dp"
+                        android:layout_weight="0.7"
+                        android:background="@drawable/btn_filled"
+                        android:padding="0dp"
+                        android:text="@string/use"
+                        android:textAllCaps="false"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp" />
+
+                    <Button
+                        android:id="@+id/btn_remove_shipping"
+                        android:layout_width="match_parent"
+                        android:layout_height="36dp"
+                        android:layout_weight="0.7"
+                        android:background="@drawable/btn_filled_maroon"
+                        android:padding="0dp"
+                        android:text="@string/delete"
+                        android:textAllCaps="false"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:text="%"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingStart="8dp"
+                    android:paddingTop="4dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="4dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent">
+
+                        <TextView
+                            android:layout_width="48dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/font_regular"
+                            android:gravity="center"
+                            android:text="@string/discount_carwash"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginEnd="10dp"
+                            android:text="@string/currency" />
+                    </LinearLayout>
+
+                    <EditText
+                        android:id="@+id/discount"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_weight="3"
+                        android:gravity="center"
+                        android:imeOptions="actionDone"
+                        android:importantForAutofill="no"
+                        android:inputType="number"
+                        android:singleLine="true"
+                        android:textSize="14sp" />
+
+                    <Button
+                        android:id="@+id/btn_use_discount"
+                        android:layout_width="52dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/btn_filled"
+                        android:padding="0dp"
+                        android:text="@string/use"
+                        android:textAllCaps="false"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp" />
+
+                    <Button
+                        android:id="@+id/btn_remove_discount"
+                        android:layout_width="52dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/btn_filled_maroon"
+                        android:padding="0dp"
+                        android:text="@string/delete"
+                        android:textAllCaps="false"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:text="%"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingStart="8dp"
+                    android:paddingTop="4dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="4dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent">
+
+                        <TextView
+                            android:layout_width="48dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/font_regular"
+                            android:gravity="center"
+                            android:text="@string/discount_salon"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginEnd="10dp"
+                            android:text="@string/currency" />
+                    </LinearLayout>
+
+                    <EditText
+                        android:id="@+id/discount_salon"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_weight="3"
+                        android:gravity="center"
+                        android:imeOptions="actionDone"
+                        android:importantForAutofill="no"
+                        android:inputType="number"
+                        android:singleLine="true"
+                        android:textSize="14sp" />
+
+                    <Button
+                        android:id="@+id/btn_use_discount_salon"
+                        android:layout_width="52dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/btn_filled"
+                        android:padding="0dp"
+                        android:text="@string/use"
+                        android:textAllCaps="false"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp" />
+
+                    <Button
+                        android:id="@+id/btn_remove_discount_salon"
+                        android:layout_width="52dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/btn_filled_maroon"
+                        android:padding="0dp"
+                        android:text="@string/delete"
+                        android:textAllCaps="false"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:text="%"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:orientation="vertical">
+
+                    <Button
+                        android:id="@+id/btn_add_discount"
+                        android:layout_width="match_parent"
+                        android:layout_height="36dp"
+                        android:background="@drawable/btn_filled"
+                        android:padding="0dp"
+                        android:text="@string/discount"
+                        android:textAllCaps="false"
+                        android:textColor="@color/white"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/font_medium"
+                        android:text="@string/total_payable"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/total_cart"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/font_medium"
+                        android:gravity="end"
+                        android:text="@string/zero"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:id="@+id/lyt_menu"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_above="@id/lyt_pay"
+                android:layout_marginStart="18dp"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/paddingScreen"
+                android:paddingEnd="@dimen/paddingScreen">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:fontFamily="@font/font_medium"
+                        android:text="@string/menu"
+                        android:textSize="24sp" />
+
+                    <androidx.appcompat.widget.SearchView
+                        android:id="@+id/mSearch"
+                        android:layout_width="match_parent"
+                        android:layout_height="34dp"
+                        android:layout_gravity="center"
+                        android:layoutDirection="rtl"
+                        android:theme="@style/SearchView"
+                        app:defaultQueryHint="@string/search"
+                        app:queryBackground="@android:color/transparent" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp">
+
+                    <ImageView
+                        android:id="@+id/btn_back_tab"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="8dp"
+                        android:backgroundTint="@color/button_filled"
+                        android:visibility="gone"
+                        app:srcCompat="?attr/homeAsUpIndicator" />
+
+                    <com.google.android.material.tabs.TabLayout
+                        android:id="@+id/tab_category"
+                        android:layout_width="match_parent"
+                        android:layout_height="36dp"
+                        app:layout_scrollFlags="scroll|enterAlways"
+                        app:tabIndicatorColor="@color/colorAccent"
+                        app:tabMode="scrollable"
+                        app:tabSelectedTextColor="@color/colorAccent"
+                        app:tabTextAppearance="@style/CustomTextAppearanceTab"
+                        app:tabTextColor="@color/colorTextPrimary" />
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_menu"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+            </LinearLayout>
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/lyt_pay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical"
+                    android:orientation="vertical">
+
+                    <EditText
+                        android:id="@+id/notes"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ems="10"
+                        android:gravity="start|top"
+                        android:hint="@string/notes_here"
+                        android:inputType="textPersonName"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:textSize="14sp"
+                        android:imeOptions="actionDone"
+                        android:singleLine="true"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btn_pay"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spaceBottom"
+                        android:layout_marginEnd="4dp"
+                        android:layout_marginBottom="@dimen/spaceBottom"
+                        android:layout_weight="1"
+                        android:background="@drawable/btn_filled"
+                        android:text="@string/place_order"
+                        android:textAllCaps="false"
+                        android:textColor="@android:color/white" />
+
+                    <Button
+                        android:id="@+id/btn_order"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginTop="@dimen/spaceBottom"
+                        android:layout_marginBottom="@dimen/spaceBottom"
+                        android:layout_weight="1"
+                        android:background="@drawable/btn_filled_maroon"
+                        android:text="@string/save_order"
+                        android:textAllCaps="false"
+                        android:textColor="@android:color/white" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/lyt_alert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="@dimen/paddingScreen"
+        android:layout_marginTop="@dimen/paddingScreen"
+        android:layout_marginEnd="@dimen/paddingScreen"
+        android:layout_marginBottom="@dimen/paddingScreen"
+        android:animateLayoutChanges="true"
+        android:background="@drawable/alert_error"
+        android:orientation="horizontal"
+        android:paddingTop="14dp"
+        android:paddingBottom="14dp"
+        android:visibility="invisible">
+
+        <ImageButton
+            android:id="@+id/btn_close_alert"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/warning"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_close" />
+
+        <TextView
+            android:id="@+id/txt_alert"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:textColor="@color/colorTextPrimary"
+            android:textSize="12sp"
+            tools:ignore="RelativeOverlap" />
+
+    </RelativeLayout>
+
+</RelativeLayout>

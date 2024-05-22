@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MenuActivity">
+
+    <TextView
+        android:id="@+id/logout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="@dimen/paddingScreen"
+        android:layout_marginTop="@dimen/paddingScreen"
+        android:layout_marginEnd="@dimen/paddingScreen"
+        android:layout_marginBottom="@dimen/paddingScreen"
+        android:fontFamily="@font/font_medium"
+        android:onClick="logout"
+        android:text="@string/logout" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_marginBottom="@dimen/spaceBottom"
+        android:orientation="horizontal">
+
+        <RadioGroup
+            android:id="@+id/radioGroup"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            tools:ignore="UselessParent">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/cashier"
+                    android:layout_width="@dimen/img_width_height_lg"
+                    android:layout_height="@dimen/img_width_height_lg"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="4dp"
+                    android:background="@drawable/ic_cashier"
+                    android:button="@null"
+                    android:checked="true" />
+
+                <TextView
+                    android:id="@+id/textDinein"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="@dimen/spaceBottom"
+                    android:fontFamily="@font/font_medium"
+                    android:gravity="center"
+                    android:text="@string/cashier"
+                    android:textSize="18sp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/order_history"
+                    android:layout_width="@dimen/img_width_height_lg"
+                    android:layout_height="@dimen/img_width_height_lg"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="4dp"
+                    android:background="@drawable/ic_order_history"
+                    android:button="@null"
+                    android:checked="true" />
+
+                <TextView
+                    android:id="@+id/textTakeaway"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spaceBottom"
+                    android:fontFamily="@font/font_medium"
+                    android:gravity="center"
+                    android:text="@string/order_history"
+                    android:textSize="18sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/customer_history"
+                    android:layout_width="@dimen/img_width_height_lg"
+                    android:layout_height="@dimen/img_width_height_lg"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="4dp"
+                    android:background="@drawable/ic_history_customer"
+                    android:button="@null"
+                    android:checked="true" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spaceBottom"
+                    android:fontFamily="@font/font_medium"
+                    android:gravity="center"
+                    android:text="@string/customer_history"
+                    android:textSize="18sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/admin"
+                    android:layout_width="@dimen/img_width_height_lg"
+                    android:layout_height="@dimen/img_width_height_lg"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="4dp"
+                    android:background="@drawable/ic_admin"
+                    android:button="@null"
+                    android:checked="true" />
+
+                <TextView
+                    android:id="@+id/textDelivery"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="@dimen/spaceBottom"
+                    android:fontFamily="@font/font_medium"
+                    android:gravity="center"
+                    android:text="@string/admin"
+                    android:textSize="18sp" />
+
+            </LinearLayout>
+        </RadioGroup>
+
+    </LinearLayout>
+
+</RelativeLayout>

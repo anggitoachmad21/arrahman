@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="12dp"
+    android:paddingBottom="12dp">
+
+    <TextView
+        android:id="@+id/number"
+        android:layout_width="48dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/font_regular"
+        android:gravity="center" />
+
+    <TextView
+        android:id="@+id/name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.3"
+        android:fontFamily="@font/font_regular"
+        android:paddingStart="4dp"
+        android:paddingEnd="0dp"
+        android:textColor="@android:color/black"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/type"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.2"
+        android:fontFamily="@font/font_regular"
+        android:paddingStart="4dp"
+        android:paddingEnd="0dp"
+        android:textColor="@android:color/black"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/counter"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1"
+        android:fontFamily="@font/font_regular"
+        android:gravity="center"
+        android:paddingStart="4dp"
+        android:paddingEnd="0dp"
+        android:textColor="@android:color/black"
+        android:textSize="14sp" />
+
+
+    <TextView
+        android:id="@+id/total_redeem"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1"
+        android:fontFamily="@font/font_regular"
+        android:gravity="center"
+        android:paddingStart="4dp"
+        android:paddingEnd="0dp"
+        android:textColor="@android:color/black"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/total_visit"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1"
+        android:fontFamily="@font/font_regular"
+        android:gravity="center"
+        android:textColor="@android:color/black"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/last_visit"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1"
+        android:fontFamily="@font/font_regular"
+        android:gravity="center"
+        android:textColor="@android:color/black"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/edit"
+        android:layout_width="56dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/font_regular"
+        android:gravity="center"
+        android:text="Rincian"
+        android:textColor="@color/text_blue"
+        android:textSize="14sp" />
+
+</LinearLayout>
