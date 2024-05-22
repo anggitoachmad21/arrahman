@@ -16,6 +16,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -30,6 +31,7 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -58,7 +60,9 @@ public class AddMemberActivity extends AppCompatActivity {
 
     private ArrayList<String> customerList;
 
-    private Spinner type_member;
+    private ArrayList<String> typeList;
+
+    private Spinner type_member, type_member_list;
     private Button btn_simpan;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +71,7 @@ public class AddMemberActivity extends AppCompatActivity {
 
         sessionManager = new SessionManager(this);
         customerList = new ArrayList<>();
+        typeList = new ArrayList<>();
         name_customer = findViewById(R.id.name);
         nomor_wa = findViewById(R.id.no_wa);
         type_member = findViewById(R.id.type_member);
@@ -81,12 +86,71 @@ public class AddMemberActivity extends AppCompatActivity {
         btn_simpan.setOnClickListener(view -> {
             simpanMember();
         });
+
+        getTypeMember();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         getCustomer();
+    }
+
+    private void getTypeMember()
+    {
+        StringRequest stringRequest = new StringRequest(URI.TYPE_MEMBER, response -> {
+            Log.e("RESPONSE", response.toString());
+            try {
+                JSONArray jsonArray = new JSONArray(response);
+                for(int i=0; i<jsonArray.length(); i++)
+                {
+                    JSONObject jsonObject = jsonArray.getJSONObject(i);
+                    typeList.add(jsonObject.getString("name"));
+                }
+                type_member.setAdapter(new ArrayAdapter<>(getApplicationContext(), R.layout.spinner_item, typeList));
+
+                type_member.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                        // your code here
+                        //Log.e("Spinner", String.valueOf(list_customer.get(position).getCounter()));
+
+                        getTypeMemberByName(type_member.getSelectedItem().toString());
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parentView) {
+                        // your code here
+                    }
+                });
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+        }, error -> {
+        });
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(stringRequest);
+    }
+
+    private void getTypeMemberByName(String name)
+    {
+        StringRequest stringRequest = new StringRequest(URI.TYPE_MEMBER_BY_NAME + "?name="+name, response -> {
+            Log.e("RESPONSE", response.toString());
+            try {
+                JSONObject jsonObject = new JSONObject(response);
+                TextView price_member = findViewById(R.id.price_member);
+                price_member.setText("Rp. " + jsonObject.getString("price"));
+                TextView ket_member = findViewById(R.id.ket_member);
+                ket_member.setText(jsonObject.getString("description"));
+                TextView name_paket = findViewById(R.id.name_paket);
+                name_paket.setText("Paket Member " + jsonObject.getString("name"));
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+        }, error -> {
+        });
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(stringRequest);
     }
 
     private void getCustomer()
