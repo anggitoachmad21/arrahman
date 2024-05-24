@@ -10,6 +10,12 @@ public class URI {
     public static String TYPE_MEMBER = BASE_URL+"api/member/type_member_list/";
     public static String TYPE_MEMBER_BY_NAME = BASE_URL+"api/member/type_member_name/";
     public static String TYPE_CAR_BY_NAME = BASE_URL+"api/member/type_car_name/";
+
+    public static String DETAIL_MEMBER = BASE_URL+"api/member/detail_member";
+
+    public static String GENERATE_DATE = BASE_URL+"api/member/generate_date";
+
+    public static String MEMBER_BY_CUSTOMER_NAME = BASE_URL+"api/member/memberByCustomerName";
     public static String BALANCE_OPEN_REGISTER = BASE_URL+"api/cashier/addBalance/";
     public static String BALANCE_CLOSE_REGISTER = BASE_URL+"api/cashier/closeRegister/";
     public static String API_MENU = BASE_URL+"api/cashier/menu/";
@@ -54,4 +60,6 @@ public class URI {
     public static String SAVE_TOKEN_FCM = BASE_URL+"api/cashier/save_token_fcm/";
 
     public static String SIMPAN_MEMBER = BASE_URL+"api/member/simpan_member";
+
+    public static String UPDATE_MEMBER = BASE_URL+"api/member/update_member/";
 } 

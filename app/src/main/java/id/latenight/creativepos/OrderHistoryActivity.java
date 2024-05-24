@@ -151,6 +151,17 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
             for (int i = 0; i < response.length(); i++){
                 try {
                     jsonObject = response.getJSONObject(i);
+                    JSONArray items = new JSONArray(jsonObject.getString("items"));
+                    String menu_category = "";
+                    for(int j=0; j<items.length(); j++)
+                    {
+                        JSONObject js = items.getJSONObject(j);
+                        if(js.getString("menu_category").equals("15"))
+                        {
+                            menu_category = "15";
+                            break;
+                        }
+                    }
                     Order listData = new Order(
                             jsonObject.getString("id"),
                             jsonObject.getString("sale_no"),
@@ -167,7 +178,7 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
                             jsonObject.getString("queue_no"),
                             jsonObject.getString("category"),
                             jsonObject.getInt("status"),
-                            jsonObject.getString("payment_type_member"));
+                            menu_category);
                     runningOrderList.add(listData);
                     db.addSales(jsonObject.getString("sale_no"), String.valueOf(jsonObject));
                 } catch (JSONException e) {
@@ -193,7 +204,18 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
             for (int i = 0; i < response.length(); i++){
                 try {
                     jsonObject = response.getJSONObject(i);
-                    Order listData = new Order(jsonObject.getString("id"), jsonObject.getString("sale_no"), jsonObject.getString("total_payable"), jsonObject.getString("sale_date"), jsonObject.getString("order_time"), jsonObject.getString("order_type"), jsonObject.getString("customer_name"), jsonObject.getString("order_status"), jsonObject.getString("sub_total"), jsonObject.getString("sub_total_discount_value"), jsonObject.getString("total_discount_amount"), jsonObject.getString("cust_notes"), jsonObject.getString("queue_no"), jsonObject.getString("category"), jsonObject.getInt("status"), jsonObject.getString("menu_category"));
+                    JSONArray items = new JSONArray(jsonObject.getString("items"));
+                    String menu_category = "";
+                    for(int j=0; j<items.length(); j++)
+                    {
+                        JSONObject js = items.getJSONObject(j);
+                        if(js.getString("menu_category").equals("15"))
+                        {
+                            menu_category = "15";
+                            break;
+                        }
+                    }
+                    Order listData = new Order(jsonObject.getString("id"), jsonObject.getString("sale_no"), jsonObject.getString("total_payable"), jsonObject.getString("sale_date"), jsonObject.getString("order_time"), jsonObject.getString("order_type"), jsonObject.getString("customer_name"), jsonObject.getString("order_status"), jsonObject.getString("sub_total"), jsonObject.getString("sub_total_discount_value"), jsonObject.getString("total_discount_amount"), jsonObject.getString("cust_notes"), jsonObject.getString("queue_no"), jsonObject.getString("category"), jsonObject.getInt("status"), menu_category);
                     orderHistoryList.add(listData);
                     db.addSales(jsonObject.getString("sale_no"), String.valueOf(jsonObject));
                 } catch (JSONException e) {

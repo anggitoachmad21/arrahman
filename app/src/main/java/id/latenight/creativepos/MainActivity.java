@@ -769,11 +769,33 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
     }
 
     private void getCustomerInfo(String customer_name) {
+        LinearLayout lyt_member = findViewById(R.id.lyt_member);
+        LinearLayout lyt_no_member = findViewById(R.id.lyt_no_member);
+        lyt_member.setVisibility(View.GONE);
+        TextView diskon_member_saldo = findViewById(R.id.diskon_member_saldo);
+        TextView diskon_member_free = findViewById(R.id.diskon_member_free);
+        TextView diskon_member_use = findViewById(R.id.diskon_member_use);
         TextView freeWashInfo = findViewById(R.id.free_wash_info);
         freeWashInfo.setText("Loading...");
         StringRequest stringRequest = new StringRequest(URI.API_CUSTOMER_DETAIL+customer_name, response -> {
             try {
                 JSONObject jsonObject = new JSONObject(response);
+                if(jsonObject.getString("is_member").equals("1"))
+                {
+                    lyt_no_member.setVisibility(View.GONE);
+                    lyt_member.setVisibility(View.VISIBLE);
+                    JSONObject jsonObject1 = jsonObject.getJSONObject("member");
+                    diskon_member_saldo.setText(jsonObject1.getString("balance") + " X Cuci Lagi");
+                    diskon_member_free.setText(jsonObject1.getString("discount") + " X Cuci Lagi");
+                    if(!jsonObject1.getString("used").equals("0")){
+                        diskon_member_use.setText("Diskon sudah di gunakan"+" "+jsonObject1.getString("used") + " X ");
+                    }
+                    if(jsonObject1.getString("used").equals("0"))
+                    {
+                        diskon_member_use.setText("Diskon belum di gunakan");
+                    }
+                    return;
+                }
                 freeWashInfo.setText((5-jsonObject.getInt("counter")) + "X lagi untuk cuci gratis");
             } catch (JSONException e) {
                 e.printStackTrace();

@@ -70,10 +70,16 @@ public class AddMemberActivity extends AppCompatActivity {
     private EditText alamat;
     private Button btn_simpan;
     private DatabaseHandler db;
+    private Integer member_id = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_member);
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            member_id = extras.getInt("member_id");
+            getDetailsMember();
+        }
 
         sessionManager = new SessionManager(this);
         db = new DatabaseHandler(this);
@@ -91,9 +97,16 @@ public class AddMemberActivity extends AppCompatActivity {
         spinnerCustomer.setAdapter(new ArrayAdapter<>(getApplicationContext(), R.layout.spinner_item, customerList));
 
         btn_simpan = findViewById(R.id.btn_simpan);
+        Button btn_kembali = findViewById(R.id.btn_kembali);
         btn_simpan.setOnClickListener(view -> {
             simpanMember();
         });
+
+        if(member_id != 0)
+        {
+//            btn_kembali.setVisibility(View.GONE);
+            btn_simpan.setVisibility(View.GONE);
+        }
 
         getTypeMember();
     }
@@ -101,7 +114,7 @@ public class AddMemberActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        getCustomer();
+            getCustomer();
     }
 
     private void getTypeMember()
@@ -166,6 +179,9 @@ public class AddMemberActivity extends AppCompatActivity {
     {
         customerList = new ArrayList<>(Arrays.asList(sessionManager.getCustomers().split(",")));
         spinnerCustomer.setAdapter(new ArrayAdapter<>(getApplicationContext(), R.layout.spinner_item, customerList));
+        if (member_id == 0) {
+            spinnerCustomer.setFocusable(false);
+        }
         spinnerCustomer.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
@@ -179,6 +195,29 @@ public class AddMemberActivity extends AppCompatActivity {
                 // your code here
             }
         });
+    }
+
+    private void getDetailsMember()
+    {
+        Log.e("URL", URI.DETAIL_MEMBER + "/"+member_id);
+        StringRequest stringRequest = new StringRequest(URI.DETAIL_MEMBER + "/"+member_id, response -> {
+            Log.e("RESPONSE", response.toString());
+            try {
+                JSONObject jsonObject = new JSONObject(response);
+                spinnerCustomer.setSelection(customerList.indexOf(jsonObject.getString("customer_name")));
+                type_member.setSelection(typeList.indexOf(jsonObject.getString("member_name")));
+                getTypeCarByName(jsonObject.getString("customer_name"));
+                getTypeMemberByName(jsonObject.getString("member_name"));
+                name_customer.setText(jsonObject.getString("name"));
+                alamat.setText(jsonObject.getString("alamat"));
+                nomor_wa.setText(jsonObject.getString("nomor_wa"));
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+        }, error -> {
+        });
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(stringRequest);
     }
 
     private void getTypeCarByName(String name)
@@ -202,7 +241,8 @@ public class AddMemberActivity extends AppCompatActivity {
     {
         StringRequest postRequest = new StringRequest(Request.Method.POST, URI.SIMPAN_MEMBER,
                 response -> {
-                    payOrder();
+            String member_id = "1";
+                    payOrder(member_id);
 //                    Log.e("RESPONSE", response.toString());
 //                    Toast.makeText(this, "Berhasil Simpan", Toast.LENGTH_SHORT).show();
 //                    Intent intent = new Intent(this, MemberListActivity   .class);
@@ -237,7 +277,7 @@ public class AddMemberActivity extends AppCompatActivity {
     }
 
     @SuppressLint("SetTextI18n")
-    private void payOrder() {
+    private void payOrder(String member_id) {
         String URL_POST;
         URL_POST = URI.API_PLACE_ORDER;
 

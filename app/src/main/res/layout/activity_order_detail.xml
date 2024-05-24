@@ -183,7 +183,7 @@
                         android:background="@drawable/line" />
 
                     <LinearLayout
-                        android:visibility="gone"
+                        android:visibility="visible"
                         android:id="@+id/lyt_worker_washer"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
@@ -531,13 +531,23 @@
 
                     </TableLayout>
 
+                    <View
+                        android:layout_width="wrap_content"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="@dimen/spaceBottom"
+                        android:layout_marginBottom="10dp"
+                        android:background="@drawable/line" />
+
                     <LinearLayout
+                        android:visibility="gone"
+                        android:id="@+id/lyt_member"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
+                        android:layout_marginBottom="15dp"
                         android:orientation="horizontal">
 
                         <LinearLayout
+                            android:layout_weight="1"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical">
@@ -547,6 +557,31 @@
                                 android:layout_height="wrap_content"
                                 android:text="Tanggal Transaksi"/>
                             
+                            <TextView
+                                android:id="@+id/start_date_member"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                />
+                            
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_weight="1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Berlaku Sampai"/>
+
+                            <TextView
+                                android:id="@+id/end_date_member"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                />
+
                         </LinearLayout>
 
 

@@ -28,6 +28,7 @@ import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NetworkResponse;
@@ -83,6 +84,8 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
 
     private Button washingProcess, washingFinish, salonProcess, jokProcess, finishOrder;
     private DatabaseHandler db;
+
+    private String member_id = "", balance = "", active_date = "", expired_date = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -356,7 +359,7 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
                     printQueue.setVisibility(View.GONE);
                 }
 
-                if(jsonObject.getString("payment_type_member").equals("1")){
+                if(jsonObject.getString("cust_notes").equals("Pembayaran Member")){
                     LinearLayout lytWorkerWasher = findViewById(R.id.lyt_worker_washer);
                     Button printQueue = findViewById(R.id.print_queue);
                     lytWorkerWasher.setVisibility(View.GONE);
@@ -416,6 +419,8 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
                     }
                 });
 
+                String valver = "";
+                String duration = "";
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject jo = jsonArray.getJSONObject(i);
                     @SuppressLint("InflateParams") View tableRow = LayoutInflater.from(getApplicationContext()).inflate(R.layout.table_order, null, false);
@@ -429,6 +434,9 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
                     int menu_qty = jo.getInt("qty");
                     int menu_total = menu_price * menu_qty;
 
+                    valver =  jo.getString("menu_category");
+                    duration = jo.getString("package_duration");
+
                     String title_new = menu_name.toLowerCase();
                     String capitalize = capitalizeText(title_new);
                     history_display_no.setText(capitalize);
@@ -436,6 +444,15 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
                     history_display_orderid.setText(String.valueOf(menu_qty));
                     history_display_quantity.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(menu_total).replace(',', '.'));
                     tableLayout.addView(tableRow);
+                }
+                if(jsonObject.getString("cust_notes").equals("Pembayaran Member")) {
+                    LinearLayout lyt_member = findViewById(R.id.lyt_member);
+                    lyt_member.setVisibility(View.VISIBLE);
+                    getDateMember(jsonObject.getString("sale_date"), duration);
+                    jsonObject.getString("customer_name");
+                    getMemberByCustomer(jsonObject.getString("customer_name"));
+                    Button update_order = findViewById(R.id.update_order);
+                    update_order.setVisibility(View.GONE);
                 }
 
                 if (order_status.equals("1")) {
@@ -448,6 +465,43 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
         , error -> {
         });
         requestQueue= Volley.newRequestQueue(this);
+        requestQueue.add(stringRequest);
+    }
+
+    private void getDateMember(String sale_date, String duration)
+    {
+        TextView start_sale_date = findViewById(R.id.start_date_member);
+        start_sale_date.setText("Date Loading...");
+        TextView end_sale_date = findViewById(R.id.end_date_member);
+        end_sale_date.setText("Date Loading...");
+        StringRequest stringRequest = new StringRequest(URI.GENERATE_DATE + "?sale_date="+sale_date+"&duration="+duration, response -> {
+            Log.e("RESPONSE DATE", response.toString());
+            try {
+                JSONObject jsonObject = new JSONObject(response);
+                start_sale_date.setText(jsonObject.getString("active_date"));
+                end_sale_date.setText(jsonObject.getString("expired_date"));
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+        }, error -> {
+        });
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(stringRequest);
+    }
+
+    private void getMemberByCustomer(String name)
+    {
+        StringRequest stringRequest = new StringRequest(URI.MEMBER_BY_CUSTOMER_NAME + "?customer_name="+name, response -> {
+            Log.e("RESPONSE DATE", response.toString());
+            try {
+                JSONObject jsonObject = new JSONObject(response);
+                member_id = jsonObject.getString("id");
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+        }, error -> {
+        });
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
         requestQueue.add(stringRequest);
     }
 
@@ -685,6 +739,11 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
                                     //Log.e("Enable", sessionManager.getEnablePrinter());
                                     if(sessionManager.getEnablePrinter().equals("on")) {
                                         printText(jsonObject.getString("header_invoice"), jsonObject.getString("invoice"));
+                                    }
+                                    if(!member_id.isEmpty())
+                                    {
+                                        updateMember(jsonObject.getString("sales_information"));
+                                        return;
                                     }
                                     db.updateNote(Integer.parseInt(order_id), jsonObject.getString("sales_information"));
                                     //db.deleteSales(Integer.parseInt(order_id));
@@ -1184,6 +1243,48 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
         if (v.getId() == R.id.finish_order) {
             finishOrderVVIP();
         }
+    }
+
+    private void updateMember(String sales_information)
+    {
+        Log.e("RESPONSE MEMBER ID", member_id + " : " + order_id);
+        showLoading();
+        StringRequest postRequest = new StringRequest(Request.Method.POST, URI.UPDATE_MEMBER,
+                response -> {
+                    hideLoading();
+                    db.updateNote(Integer.parseInt(order_id), sales_information);
+                    //db.deleteSales(Integer.parseInt(order_id));
+                    Intent intent = new Intent(getApplicationContext(), OrderHistoryActivity.class);
+                    startActivity(intent);
+                    finish();
+                },
+                error -> {
+                    hideLoading();
+                    error.printStackTrace();
+                    NetworkResponse networkResponse = error.networkResponse;
+                    if (networkResponse != null && networkResponse.data != null) {
+                        String jsonError = new String(networkResponse.data);
+                        // Print Error!
+                        Log.e("Error", jsonError);
+                        Toast.makeText(this, "Gagal Simpan", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        ) {
+            @Override
+            protected Map<String, String> getParams()
+            {
+                Map<String, String> params = new HashMap<>();
+                // the POST parameters:
+
+                params.put("member_id", member_id);
+                params.put("sale_no", order_id);
+                params.put("active_date", active_date);
+                params.put("expired_date", expired_date);
+                params.put("status", "1");
+                return params;
+            }
+        };
+        Volley.newRequestQueue(this).add(postRequest);
     }
 
     @Override
