@@ -166,7 +166,8 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
                             jsonObject.getString("cust_notes"),
                             jsonObject.getString("queue_no"),
                             jsonObject.getString("category"),
-                            jsonObject.getInt("status"));
+                            jsonObject.getInt("status"),
+                            jsonObject.getString("payment_type_member"));
                     runningOrderList.add(listData);
                     db.addSales(jsonObject.getString("sale_no"), String.valueOf(jsonObject));
                 } catch (JSONException e) {
@@ -192,7 +193,7 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
             for (int i = 0; i < response.length(); i++){
                 try {
                     jsonObject = response.getJSONObject(i);
-                    Order listData = new Order(jsonObject.getString("id"), jsonObject.getString("sale_no"), jsonObject.getString("total_payable"), jsonObject.getString("sale_date"), jsonObject.getString("order_time"), jsonObject.getString("order_type"), jsonObject.getString("customer_name"), jsonObject.getString("order_status"), jsonObject.getString("sub_total"), jsonObject.getString("sub_total_discount_value"), jsonObject.getString("total_discount_amount"), jsonObject.getString("cust_notes"), jsonObject.getString("queue_no"), jsonObject.getString("category"), jsonObject.getInt("status"));
+                    Order listData = new Order(jsonObject.getString("id"), jsonObject.getString("sale_no"), jsonObject.getString("total_payable"), jsonObject.getString("sale_date"), jsonObject.getString("order_time"), jsonObject.getString("order_type"), jsonObject.getString("customer_name"), jsonObject.getString("order_status"), jsonObject.getString("sub_total"), jsonObject.getString("sub_total_discount_value"), jsonObject.getString("total_discount_amount"), jsonObject.getString("cust_notes"), jsonObject.getString("queue_no"), jsonObject.getString("category"), jsonObject.getInt("status"), jsonObject.getString("menu_category"));
                     orderHistoryList.add(listData);
                     db.addSales(jsonObject.getString("sale_no"), String.valueOf(jsonObject));
                 } catch (JSONException e) {
@@ -230,7 +231,7 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
     }
 
     @SuppressLint("SetTextI18n")
-    private void getTotalSalesToday() {
+        private void getTotalSalesToday() {
         Log.e("URL_", URI.API_TOTAL_SALES_TODAY+sessionManager.getId());
         StringRequest stringRequest = new StringRequest(URI.API_TOTAL_SALES_TODAY + sessionManager.getId(), response -> {
 

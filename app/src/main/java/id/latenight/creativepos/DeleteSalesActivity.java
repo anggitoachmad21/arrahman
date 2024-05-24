@@ -173,7 +173,8 @@ public class DeleteSalesActivity extends AppCompatActivity implements DeleteOrde
                             jsonObject.getString("cust_notes"),
                             jsonObject.getString("queue_no"),
                             jsonObject.getString("category"),
-                            jsonObject.getInt("status"));
+                            jsonObject.getInt("status"),
+                            jsonObject.getString("payment_type_member"));
                     orderHistoryList.add(listData);
                 } catch (JSONException e) {
                     e.printStackTrace();

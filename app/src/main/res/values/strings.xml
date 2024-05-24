@@ -171,4 +171,11 @@
         <item>Royal 1</item>
         <item>Royal 2</item>
     </string-array>
+
+    <string-array name="option_member">
+        <item>options</item>
+        <item>Perpanjang Member</item>
+        <item>Lihat Riwayat</item>
+        <item>Detail Member</item>
+    </string-array>
 </resources>

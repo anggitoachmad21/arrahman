@@ -18,7 +18,9 @@ public class Order {
     private String category;
     private int status;
 
-    public Order(String id, String sale_no, String total_payable, String sale_date, String order_time, String order_type, String customer_name, String order_status, String subtotal, String discount, String value_discount, String cust_notes, String queue_no, String category, int status) {
+    private String payment_type_member;
+
+    public Order(String id, String sale_no, String total_payable, String sale_date, String order_time, String order_type, String customer_name, String order_status, String subtotal, String discount, String value_discount, String cust_notes, String queue_no, String category, int status, String payment_type_member) {
         this.id = id;
         this.sale_no = sale_no;
         this.total_payable = total_payable;
@@ -34,7 +36,7 @@ public class Order {
         this.queue_no = queue_no;
         this.category = category;
         this.status = status;
-
+        this.payment_type_member = payment_type_member;
     }
 
     public String getId() {
@@ -46,9 +48,6 @@ public class Order {
     public String getTotalPayable() {
         return total_payable;
     }
-    public String getSaleDate() {
-        return sale_date;
-    }
     public String getOrderTime() {
         return order_time;
     }
@@ -57,6 +56,9 @@ public class Order {
     }
     public String getCustomerName() {
         return customer_name;
+    }
+    public String getSaleDate() {
+        return sale_date;
     }
     public String getOrderStatus() {
         return order_status;
@@ -84,5 +86,13 @@ public class Order {
     }
     public int getStatus() {
         return status;
+    }
+
+    public String getPayment_type_member() {
+        return payment_type_member;
+    }
+
+    public void setPayment_type_member(String payment_type_member) {
+        this.payment_type_member = payment_type_member;
     }
 }

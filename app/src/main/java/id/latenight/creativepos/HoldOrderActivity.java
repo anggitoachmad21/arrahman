@@ -93,7 +93,7 @@ public class HoldOrderActivity extends AppCompatActivity implements OrderAdapter
             for (int i = 0; i < response.length(); i++){
                 try {
                     jsonObject = response.getJSONObject(i);
-                    Order listData = new Order(jsonObject.getString("id"), jsonObject.getString("sale_no"), jsonObject.getString("total_payable"), jsonObject.getString("sale_date"), jsonObject.getString("order_time"), jsonObject.getString("order_type"), jsonObject.getString("customer_name"), jsonObject.getString("order_status"), jsonObject.getString("sub_total"), jsonObject.getString("sub_total_discount_value"), jsonObject.getString("total_discount_amount"), jsonObject.getString("cust_notes"), jsonObject.getString("queue_no"), jsonObject.getString("category"), jsonObject.getInt("status"));
+                    Order listData = new Order(jsonObject.getString("id"), jsonObject.getString("sale_no"), jsonObject.getString("total_payable"), jsonObject.getString("sale_date"), jsonObject.getString("order_time"), jsonObject.getString("order_type"), jsonObject.getString("customer_name"), jsonObject.getString("order_status"), jsonObject.getString("sub_total"), jsonObject.getString("sub_total_discount_value"), jsonObject.getString("total_discount_amount"), jsonObject.getString("cust_notes"), jsonObject.getString("queue_no"), jsonObject.getString("category"), jsonObject.getInt("status"), jsonObject.getString("menu_category"));
                     runningOrderList.add(listData);
                 } catch (JSONException e) {
                     e.printStackTrace();

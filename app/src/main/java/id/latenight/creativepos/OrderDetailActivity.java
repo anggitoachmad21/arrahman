@@ -356,6 +356,13 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
                     printQueue.setVisibility(View.GONE);
                 }
 
+                if(jsonObject.getString("payment_type_member").equals("1")){
+                    LinearLayout lytWorkerWasher = findViewById(R.id.lyt_worker_washer);
+                    Button printQueue = findViewById(R.id.print_queue);
+                    lytWorkerWasher.setVisibility(View.GONE);
+                    printQueue.setVisibility(View.GONE);
+                }
+
                 params_sale_id = jsonObject.getInt("sale_no");
                 params_subtotal = jsonObject.getInt("sub_total");
                 int discount_value = Integer.parseInt(jsonObject.getString("sub_total_discount_value").replace("%", ""));

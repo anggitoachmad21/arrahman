@@ -136,4 +136,9 @@ public class MemberListActivity extends AppCompatActivity implements MemberAdapt
 //        intent.putExtra("customer_name", item.getName());
 //        startActivity(intent);
     }
+
+    @Override
+    public void onSelected(Member item, String options) {
+
+    }
 }

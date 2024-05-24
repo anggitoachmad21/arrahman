@@ -9,6 +9,7 @@ public class URI {
 
     public static String TYPE_MEMBER = BASE_URL+"api/member/type_member_list/";
     public static String TYPE_MEMBER_BY_NAME = BASE_URL+"api/member/type_member_name/";
+    public static String TYPE_CAR_BY_NAME = BASE_URL+"api/member/type_car_name/";
     public static String BALANCE_OPEN_REGISTER = BASE_URL+"api/cashier/addBalance/";
     public static String BALANCE_CLOSE_REGISTER = BASE_URL+"api/cashier/closeRegister/";
     public static String API_MENU = BASE_URL+"api/cashier/menu/";

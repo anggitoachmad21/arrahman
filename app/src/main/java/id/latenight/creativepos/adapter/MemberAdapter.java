@@ -4,11 +4,14 @@ import static id.latenight.creativepos.util.CapitalizeText.capitalizeText;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
@@ -57,6 +60,22 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.ViewHolder
         holder.edit.setOnClickListener(view -> {
             listener.onItemSelected(listData);
         });
+
+        holder.spinnerOptions.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                // your code here
+                if(!holder.spinnerOptions.getSelectedItem().toString().equals("options")) {
+//                    Log.e("RESPONSE CHANGE", holder.spinnerOptions.getSelectedItem().toString() + "  ID = " + listData.getId());
+                    listener.onSelected(listData, holder.spinnerOptions.getSelectedItem().toString());
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+                // your code here
+            }
+        });
     }
 
     @Override
@@ -70,6 +89,7 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.ViewHolder
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         private final TextView number, name, nomor_wa, plat_no, type_member, saldo, diskon, tanggal_mulai, tanggal_akhir, edit;
+        private final Spinner spinnerOptions;
         public ViewHolder(View itemView) {
             super(itemView);
             number = itemView.findViewById(R.id.number);
@@ -82,6 +102,7 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.ViewHolder
             tanggal_mulai = itemView.findViewById(R.id.tanggal_mulai);
             tanggal_akhir = itemView.findViewById(R.id.tanggal_akhir);
             edit = itemView.findViewById(R.id.edit);
+            spinnerOptions = itemView.findViewById(R.id.options);
 
             itemView.setOnClickListener(view -> {
                 // send selected berita in callback
@@ -92,6 +113,7 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.ViewHolder
 
     public interface ImageAdapterListener {
         void onItemSelected(Member item);
+        void onSelected(Member item, String options);
     }
 
 

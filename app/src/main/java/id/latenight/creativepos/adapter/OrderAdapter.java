@@ -73,7 +73,12 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
         holder.order_time.setText(listData.getOrderTime());
         holder.price.setText(ct.getResources().getString(R.string.currency) +" "+ rupiah.replace(',', '.'));
         holder.order_type.setText(ct.getResources().getString(R.string.queue_no) + " " + listData.getQueueNo());
-        holder.category.setText(" - "+  listData.getCategory());
+        if(!listData.getPayment_type_member().equals("15")) {
+            holder.category.setText(" - " + listData.getCategory());
+        }
+        else{
+            holder.category.setText(" - " + "Member");
+        }
         // holder.table_name.setText(ct.getResources().getString(R.string.table_name) + " " + tableName);
         holder.table_name.setText(listData.getOrderStatus());
     }
