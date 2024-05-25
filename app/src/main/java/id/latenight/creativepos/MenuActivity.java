@@ -28,6 +28,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
+import id.latenight.creativepos.util.MemberAutoUpdate;
 import id.latenight.creativepos.util.MyApplication;
 import id.latenight.creativepos.util.SessionManager;
 import id.latenight.creativepos.util.URI;
@@ -109,6 +110,9 @@ public class MenuActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         registrationFCM();
+
+        MemberAutoUpdate memberAutoUpdate = new MemberAutoUpdate();
+        memberAutoUpdate.updated(this);
     }
 
     private void registrationFCM() {

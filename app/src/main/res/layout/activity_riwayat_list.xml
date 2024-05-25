@@ -162,7 +162,7 @@
                         android:layout_weight="0.1"
                         android:fontFamily="@font/font_medium"
                         android:gravity="center"
-                        android:text="Saldo"
+                        android:text="Type"
                         android:textColor="@android:color/black"
                         android:textSize="14sp" />
 

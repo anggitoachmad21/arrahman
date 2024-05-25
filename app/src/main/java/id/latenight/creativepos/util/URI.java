@@ -16,6 +16,7 @@ public class URI {
     public static String GENERATE_DATE = BASE_URL+"api/member/generate_date";
 
     public static String MEMBER_BY_CUSTOMER_NAME = BASE_URL+"api/member/memberByCustomerName";
+    public static String CHECK_AND_UPDATE = BASE_URL+"api/member/check_and_update";
     public static String BALANCE_OPEN_REGISTER = BASE_URL+"api/cashier/addBalance/";
     public static String BALANCE_CLOSE_REGISTER = BASE_URL+"api/cashier/closeRegister/";
     public static String API_MENU = BASE_URL+"api/cashier/menu/";
@@ -62,4 +63,6 @@ public class URI {
     public static String SIMPAN_MEMBER = BASE_URL+"api/member/simpan_member";
 
     public static String UPDATE_MEMBER = BASE_URL+"api/member/update_member/";
+
+    public static String API_RIWAYAT_LIST = BASE_URL+"api/member/riwayat_member";
 } 

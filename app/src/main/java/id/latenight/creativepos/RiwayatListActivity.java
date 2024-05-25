@@ -29,12 +29,14 @@ import java.util.List;
 
 import id.latenight.creativepos.adapter.Member;
 import id.latenight.creativepos.adapter.MemberAdapter;
+import id.latenight.creativepos.adapter.Riwayat;
+import id.latenight.creativepos.adapter.RiwayatAdapter;
 import id.latenight.creativepos.util.SessionManager;
 import id.latenight.creativepos.util.URI;
 
-public class RiwayatListActivity extends AppCompatActivity implements MemberAdapter.ImageAdapterListener {
-    private List<Member> list_customer;
-    private MemberAdapter customerAdapter;
+public class RiwayatListActivity extends AppCompatActivity implements RiwayatAdapter.ImageAdapterListener {
+    private List<Riwayat> list_customer;
+    private RiwayatAdapter customerAdapter;
     private JsonArrayRequest request;
     private RequestQueue requestQueue;
     private ProgressBar progressBar;
@@ -44,69 +46,75 @@ public class RiwayatListActivity extends AppCompatActivity implements MemberAdap
     private int param_page=1;
     private TextView title_riwayat;
 
+    private Integer member_id = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_riwayat_list);
 
         sessionManager = new SessionManager(this);
-//
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            member_id = extras.getInt("member_id");
+        }
+
         progressBar = findViewById(R.id.progressBar);
 //
         customerName = findViewById(R.id.customer_name);
         title_riwayat = findViewById(R.id.title_riwayat);
         title_riwayat.setText("List Riwayat - ");
 //
-//        RecyclerView recyclerCustomer = findViewById(R.id.recycler_customer);
-//        recyclerCustomer.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-//        list_customer = new ArrayList<>();
-//        customerAdapter = new MemberAdapter(list_customer, getApplicationContext(), this);
-//        recyclerCustomer.setAdapter(customerAdapter);
-//        recyclerCustomer.addOnScrollListener(new RecyclerView.OnScrollListener() {
-//            @Override
-//            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-//                super.onScrolled(recyclerView, dx, dy);
-//                if (! recyclerView.canScrollVertically(1)){ //1 for down
-//                    param_page = param_page + 1;
-//                    getCustomersList();
-//                }
-//            }
-//        });
+        RecyclerView recyclerCustomer = findViewById(R.id.recycler_customer);
+        recyclerCustomer.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        list_customer = new ArrayList<>();
+        customerAdapter = new RiwayatAdapter(list_customer, getApplicationContext(), this);
+        recyclerCustomer.setAdapter(customerAdapter);
+        recyclerCustomer.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if (! recyclerView.canScrollVertically(1)){ //1 for down
+                    param_page = param_page + 1;
+                    getCustomersList();
+                }
+            }
+        });
+
+        Button btnAdd = findViewById(R.id.btn_add_member);
+        btnAdd.setOnClickListener(view->{
+            Intent intent = new Intent(this, AddMemberActivity.class);
+            startActivity(intent);
+        });
 //
-//        Button btnAdd = findViewById(R.id.btn_add_member);
-//        btnAdd.setOnClickListener(view->{
-//            Intent intent = new Intent(this, AddMemberActivity.class);
-//            startActivity(intent);
-//        });
-////
-//        SwipeRefreshLayout swLayout = findViewById(R.id.swlayout);
-//        swLayout.setColorSchemeResources(R.color.colorAccent, R.color.colorPrimary);
-//        swLayout.setOnRefreshListener(() -> {
-//            list_customer.clear();
-//            getCustomersList();
-//            swLayout.setRefreshing(false);
-//        });
-//
-//        Button filter = findViewById(R.id.filter);
-//        filter.setOnClickListener(v -> {
-//            list_customer.clear();
-//            param_page = 1;
-//            param_keyword = customerName.getText().toString();
-//            getCustomersList();
-//        });
+        SwipeRefreshLayout swLayout = findViewById(R.id.swlayout);
+        swLayout.setColorSchemeResources(R.color.colorAccent, R.color.colorPrimary);
+        swLayout.setOnRefreshListener(() -> {
+            list_customer.clear();
+            getCustomersList();
+            swLayout.setRefreshing(false);
+        });
+
+        Button filter = findViewById(R.id.filter);
+        filter.setOnClickListener(v -> {
+            list_customer.clear();
+            param_page = 1;
+            param_keyword = customerName.getText().toString();
+            getCustomersList();
+        });
     }
 
     @SuppressLint("NotifyDataSetChanged")
     private void getCustomersList() {
         progressBar.setVisibility(View.VISIBLE);
-        Log.e("URL_",URI.API_MEMBER_LIST+sessionManager.getId()+"?page="+param_page+"&keyword="+param_keyword);
-        request = new JsonArrayRequest(URI.API_MEMBER_LIST+sessionManager.getId()+"?page="+param_page+"&keyword="+param_keyword, response -> {
+        Log.e("URL_",URI.API_RIWAYAT_LIST+"/"+member_id+"/"+sessionManager.getId()+"?page="+param_page+"&keyword="+param_keyword);
+        request = new JsonArrayRequest(URI.API_RIWAYAT_LIST+"/"+member_id+"/"+sessionManager.getId()+"?page="+param_page+"&keyword="+param_keyword, response -> {
             JSONObject jsonObject;
             //Log.e("Response", response.toString());
             for (int i = 0; i < response.length(); i++){
                 try {
                     jsonObject = response.getJSONObject(i);
-                    Member listData = new Member(jsonObject.getInt("id"), jsonObject.getString("customer_name"), jsonObject.getString("nomor_wa"), jsonObject.getString("plat_no"), jsonObject.getString("member_type"), jsonObject.getString("balance"), jsonObject.getString("discount"), jsonObject.getString("active_date"), jsonObject.getString("expired_date"));
+                    Riwayat listData = new Riwayat(jsonObject.getInt("id"), jsonObject.getString("sale_no"), jsonObject.getString("sale_date"), jsonObject.getString("pembelian"), jsonObject.getString("type_member"), jsonObject.getString("cust_notes"));
                     list_customer.add(listData);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -124,8 +132,8 @@ public class RiwayatListActivity extends AppCompatActivity implements MemberAdap
     @Override
     public void onResume(){
         super.onResume();
-//        list_customer.clear();
-//        getCustomersList();
+        list_customer.clear();
+        getCustomersList();
     }
 
     public void onBackPressed() {
@@ -133,11 +141,11 @@ public class RiwayatListActivity extends AppCompatActivity implements MemberAdap
         startActivity(intent);
     }
     @Override
-    public void onItemSelected(Member item) {
+    public void onItemSelected(Riwayat item) {
     }
 
     @Override
-    public void onSelected(Member item, String options) {
+    public void onSelected(Riwayat item, String options) {
 
     }
 }

@@ -66,6 +66,7 @@ import id.latenight.creativepos.adapter.Product;
 import id.latenight.creativepos.adapter.ProductAdapter;
 import id.latenight.creativepos.adapter.Cart;
 import id.latenight.creativepos.util.DatabaseHandler;
+import id.latenight.creativepos.util.MemberAutoUpdate;
 import id.latenight.creativepos.util.MyApplication;
 import id.latenight.creativepos.util.SearchableListDialog;
 import id.latenight.creativepos.util.SessionManager;
@@ -313,6 +314,8 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         getCustomers("");
 //        getCategories();
         getTables();
+        MemberAutoUpdate memberAutoUpdate = new MemberAutoUpdate();
+        memberAutoUpdate.updated(this);
     }
 
     private void addDiscountForm() {
@@ -775,25 +778,20 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         TextView diskon_member_saldo = findViewById(R.id.diskon_member_saldo);
         TextView diskon_member_free = findViewById(R.id.diskon_member_free);
         TextView diskon_member_use = findViewById(R.id.diskon_member_use);
+        TextView status_member = findViewById(R.id.status_member);
         TextView freeWashInfo = findViewById(R.id.free_wash_info);
         freeWashInfo.setText("Loading...");
         StringRequest stringRequest = new StringRequest(URI.API_CUSTOMER_DETAIL+customer_name, response -> {
             try {
                 JSONObject jsonObject = new JSONObject(response);
-                if(jsonObject.getString("is_member").equals("1"))
-                {
+                if(jsonObject.getBoolean("check_status") == true) {
                     lyt_no_member.setVisibility(View.GONE);
                     lyt_member.setVisibility(View.VISIBLE);
                     JSONObject jsonObject1 = jsonObject.getJSONObject("member");
                     diskon_member_saldo.setText(jsonObject1.getString("balance") + " X Cuci Lagi");
-                    diskon_member_free.setText(jsonObject1.getString("discount") + " X Cuci Lagi");
-                    if(!jsonObject1.getString("used").equals("0")){
-                        diskon_member_use.setText("Diskon sudah di gunakan"+" "+jsonObject1.getString("used") + " X ");
-                    }
-                    if(jsonObject1.getString("used").equals("0"))
-                    {
-                        diskon_member_use.setText("Diskon belum di gunakan");
-                    }
+                    diskon_member_free.setText((5 - jsonObject.getInt("counter")) + " X Cuci Lagi");
+                    status_member.setText(jsonObject1.getString("message_active"));
+                    diskon_member_use.setText(jsonObject1.getString("message_discount"));
                     return;
                 }
                 freeWashInfo.setText((5-jsonObject.getInt("counter")) + "X lagi untuk cuci gratis");

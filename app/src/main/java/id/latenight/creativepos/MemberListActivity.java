@@ -149,7 +149,7 @@ public class MemberListActivity extends AppCompatActivity implements MemberAdapt
         }
         if(options.equals("Lihat Riwayat")) {
             Intent intent = new Intent(this, RiwayatListActivity.class);
-//            intent.putExtra("member_id", item.getId());
+            intent.putExtra("member_id", item.getId());
             startActivity(intent);
         }
         if(options.equals("Perpanjang Member")) {
