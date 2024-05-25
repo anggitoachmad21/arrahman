@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
@@ -130,6 +131,10 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
     List<String> suggestions = new ArrayList<>();
     private int param_page=1;
 
+    private int param_customer = 1;
+
+    private EditText customerNew;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -161,6 +166,8 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         btnRemoveShipping = findViewById(R.id.btn_remove_shipping);
         btnAddCustomer = findViewById(R.id.btn_add_customer);
         btnAddDiscount = findViewById(R.id.btn_add_discount);
+
+        customerNew = findViewById(R.id.customerNew);
 
         btnOrder.setOnClickListener(this);
         btnUseDiscount.setOnClickListener(this);
@@ -237,8 +244,10 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
             addCustomerForm();
             dialog.dismiss();
         });
+        customerNew.setOnClickListener(view -> {
+            customerListNew();
+        });
         spinnerCustomer.setAdapter(new ArrayAdapter<>(getApplicationContext(), R.layout.spinner_item, customerList));
-
         selectCustomer = findViewById(R.id.select_customer);
         selectCustomer.setThreshold(1);
         selectCustomer.addTextChangedListener(new TextWatcher() {
@@ -316,6 +325,7 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         getTables();
         MemberAutoUpdate memberAutoUpdate = new MemberAutoUpdate();
         memberAutoUpdate.updated(this);
+//        customerListNew();
     }
 
     private void addDiscountForm() {
@@ -648,6 +658,97 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         requestQueue.add(stringRequest);
     }
 
+    public void customerListOnline(AlertDialog mAlertDialog, String param_keywords)
+    {
+        StringRequest stringRequest = new StringRequest(URI.API_CUSTOMER_LIST_NEW+"?page="+param_customer+"&keyword="+param_keywords, response -> {
+            Log.e("RESPONSES LIST", response.toString());
+            try {
+                JSONArray arrys = new JSONArray(response);
+                LinearLayout customer = mAlertDialog.findViewById(R.id.listCustomer);
+                for (int i = 0; i < arrys.length(); i++) {
+                    @SuppressLint("InflateParams") View tableRow = LayoutInflater.from(getApplicationContext()).inflate(R.layout.list_customers_new, null, false);
+                    TextView plat_no = tableRow.findViewById(R.id.plat_no);
+                    TextView status = tableRow.findViewById(R.id.status);
+                    String name = "";
+                    try {
+                        JSONObject jsonObject = arrys.getJSONObject(i);
+                        String splits = customerList.get(i);
+                        name = jsonObject.getString("name");
+                        plat_no.setText(jsonObject.getString("name"));
+                        if(jsonObject.getInt("is_member") == 1) {
+                            status.setText("Member");
+                        }
+                        String finalName = name;
+                        tableRow.setOnClickListener(view -> {
+                            spinnerCustomer.setSelection(customerList.indexOf(finalName));
+                            Log.e("Name", finalName);
+                            mAlertDialog.dismiss();
+                        });
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+                    customer.addView(tableRow);
+                }
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+        }, error -> {
+        });
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(stringRequest);
+    }
+
+    private void customerListNew()
+    {
+        AlertDialog.Builder dialogAddCustomer = new AlertDialog.Builder(MainActivity.this, R.style.AlertDialogStyle);
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogAddCustomerView = inflater.inflate(R.layout.form_list_customer, null);
+        dialogAddCustomer.setView(dialogAddCustomerView);
+        dialogAddCustomer.setCancelable(true);
+        dialogAddCustomer.setTitle("List Pelanggan");
+
+        dialogAddCustomer.setPositiveButton("Tambahkan Customer", null);
+        dialogAddCustomer.setNegativeButton(getResources().getString(R.string.cancel), null);
+
+        final AlertDialog mAlertDialog = dialogAddCustomer.create();
+        mAlertDialog.setOnShowListener(dialog -> {
+            customerListOnline(mAlertDialog, "");
+            SwipeRefreshLayout swLayout = mAlertDialog.findViewById(R.id.swlayout);
+            swLayout.setColorSchemeResources(R.color.colorAccent, R.color.colorPrimary);
+            swLayout.setOnRefreshListener(() -> {
+                param_customer = param_customer +1;
+                customerListOnline(mAlertDialog, "");
+                swLayout.setRefreshing(false);
+            });
+            EditText search = mAlertDialog.findViewById(R.id.search);
+            search.addTextChangedListener(new TextWatcher() {
+                public void afterTextChanged(Editable s) {
+                }
+
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
+
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    if (!s.toString().isEmpty()) {
+                        LinearLayout customer = mAlertDialog.findViewById(R.id.listCustomer);
+                        customer.removeAllViews();
+                        param_customer = 1;
+                        customerListOnline(mAlertDialog, s.toString());
+                    }
+                    else{
+                        param_customer = 1;
+                        customerListOnline(mAlertDialog, "");
+                    }
+                }
+            });
+            Button b = mAlertDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            b.setOnClickListener(view -> {
+                addCustomerForm();
+            });
+        });
+        mAlertDialog.show();
+    }
+
     private void getMenuList(String api_customer_id, String api_category, String api_sub_category, String api_label) {
         String params = "/"+api_customer_id+"/"+api_category+"/"+api_sub_category+"/"+api_label;
         String API_MENU = URI.API_MENU+sessionManager.getId()+params+"?page="+param_page+"&keyword="+param_keyword;
@@ -697,12 +798,13 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
                 // your code here
                 //Log.e("Spinner", String.valueOf(list_customer.get(position).getCounter()));
-
+//                customerListNew();
                 getCustomerInfo(spinnerCustomer.getSelectedItem().toString());
 
                 list_cart.clear();
                 cartAdapter.notifyDataSetChanged();
                 onUpdatePrice(0);
+                customerNew.setText(spinnerCustomer.getSelectedItem().toString());
                 param_customer_id = spinnerCustomer.getSelectedItem().toString();
                 getMenuList(param_customer_id, param_category, param_subcategory, param_label);
 

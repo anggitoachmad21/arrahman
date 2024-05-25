@@ -65,4 +65,6 @@ public class URI {
     public static String UPDATE_MEMBER = BASE_URL+"api/member/update_member/";
 
     public static String API_RIWAYAT_LIST = BASE_URL+"api/member/riwayat_member";
+
+    public static String API_CUSTOMER_LIST_NEW = BASE_URL+"api/member/list_customer_new";
 } 
