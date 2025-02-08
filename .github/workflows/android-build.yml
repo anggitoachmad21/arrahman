@@ -3,7 +3,7 @@ name: Android Build and Upload
 on:
   push:
     branches:
-      - master  # Gantilah dengan nama branch yang diinginkan
+      - master
 
 jobs:
   build:
@@ -28,13 +28,13 @@ jobs:
         run: ./gradlew assembleRelease
 
       - name: Upload APK to GitHub Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
-          path: app/build/outputs/apk/release/arrahman-dev-v1.apk
+          path: app/build/outputs/apk/debug/arrahman-dev-v1.apk
 
       - name: Upload APK to server via API
         run: |
-          curl -X POST -F "apk_file=@app/build/outputs/apk/release/arrahman-dev-v1.apk" \
+          curl -X POST -F "apk_file=@app/build/outputs/apk/debug/arrahman-dev-v1.apk" \
                -H "Content-Type: multipart/form-data" \
                https://aplikasi.cizypos.com/Upload/upload_apk
