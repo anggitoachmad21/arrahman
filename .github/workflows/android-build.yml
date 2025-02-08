@@ -37,4 +37,4 @@ jobs:
         run: |
           curl -X POST -F "apk_file=@app/build/outputs/apk/release/arrahman-dev-v1.apk" \
                -H "Content-Type: multipart/form-data" \
-               http://your-server.com/index.php/uploadcontroller/upload_apk
+               https://aplikasi.cizypos.com/Upload/upload_apk
