@@ -17,6 +17,9 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '11'
+          java-package: jdk
+          architecture: x64
+          distribution: 'amazon-corretto'
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v2
