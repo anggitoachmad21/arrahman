@@ -9,11 +9,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     
-    strategy:
-      matrix:
-        api-level: [28, 29, 30]
-        build-tools: [27.0.3, 29.0.2, 30.0.3]
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -26,8 +21,8 @@ jobs:
       - name: Set up Android SDK
         uses: reactivecircus/android-setup-action@v2
         with:
-          api-level: ${{ matrix.api-level }}
-          build-tools: ${{ matrix.build-tools }}
+          api-level: 29
+          build-tools: 29.0.2
 
       - name: Gradle build APK
         run: ./gradlew assembleRelease
