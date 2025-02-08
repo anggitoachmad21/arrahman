@@ -17,11 +17,13 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '17'
+          distribution: 'adopt'
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v2
         with:
-          api-level: 29  # Atau sesuaikan dengan versi API yang kamu inginkan
+          api-level: 29  # Atau sesuaikan dengan versi API yang kamu inginkan 
+          build-tools: 29.0.2  # Atau sesuaikan dengan build tools yang kamu butuhkan
 
       - name: Gradle build APK
         run: ./gradlew assembleRelease
