@@ -3,7 +3,7 @@ name: Android Build and Upload
 on:
   push:
     branches:
-      - main  # Gantilah dengan nama branch yang diinginkan
+      - master  # Gantilah dengan nama branch yang diinginkan
 
 jobs:
   build:
