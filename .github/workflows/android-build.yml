@@ -19,7 +19,7 @@ jobs:
           java-version: '11'
           java-package: jdk
           architecture: x64
-          distribution: 'corretto'
+          distribution: 'openjdk'
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v2
