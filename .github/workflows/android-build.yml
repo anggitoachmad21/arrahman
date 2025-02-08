@@ -25,14 +25,11 @@ jobs:
           api-level: 29  # Atau sesuaikan dengan versi API yang kamu inginkan 
           build-tools: 29.0.2  # Atau sesuaikan dengan build tools yang kamu butuhkan
 
-      - name: Install Correcto SDK
-        run: |
-          curl -s https://correcto.download/sdk-install | bash  # Pastikan link dan cara install sesuai
-          source ~/.bashrc  # pastikan path benar
+      - name: Give execute permission to gradlew
+        run: chmod +x ./gradlew  # Memberikan izin eksekusi pada file gradlew
 
-      - name: Build Android Project
-        run: |
-          correcto build --platform android --distribution
+      - name: Gradle build APK
+        run: ./gradlew assembleRelease
 
       - name: Upload APK to GitHub Artifacts
         uses: actions/upload-artifact@v4
