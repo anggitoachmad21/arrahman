@@ -13,17 +13,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v2
         with:
-          java-version: '11'
-          distribution: 'adopt'
+          java-version: '17'
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v2
         with:
-          api-level: 29  # Atau sesuaikan dengan versi API yang kamu inginkan 
-          build-tools: 29.0.2  # Atau sesuaikan dengan build tools yang kamu butuhkan
+          api-level: 29  # Atau sesuaikan dengan versi API yang kamu inginkan
 
       - name: Gradle build APK
         run: ./gradlew assembleRelease
