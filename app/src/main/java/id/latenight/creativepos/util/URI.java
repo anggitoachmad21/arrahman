@@ -22,7 +22,7 @@ public class URI {
     public static String API_MENU = BASE_URL+"api/cashier/menu/";
     public static String API_CUSTOMER = BASE_URL+"api/cashier/customer/";
     public static String API_CUSTOMER_DETAIL = BASE_URL+"api/cashier/customer_detail/";
-    public static String API_ADD_CUSTOMER = BASE_URL+"api/cashier/add_customer/";
+    public static String API_ADD_CUSTOMER = BASE_URL+"api/cashier/add_customer_new/";
     public static String API_CUSTOMER_LIST_HISTORIES = BASE_URL+"api/cashier/customer_list_histories/";
     public static String API_MEMBER_LIST = BASE_URL+"api/member/get_member_list/";
     public static String API_CUSTOMER_SALES_HISTORIES = BASE_URL+"api/cashier/customer_sales_histories/";
@@ -67,4 +67,16 @@ public class URI {
     public static String API_RIWAYAT_LIST = BASE_URL+"api/member/riwayat_member";
 
     public static String API_CUSTOMER_LIST_NEW = BASE_URL+"api/member/list_customer_new";
+
+    // download item
+    public static String DOWNLOAD_CUSTOMER = BASE_URL+"api/download/customers";
+    public static String DOWNLOAD_CATEGORIES = BASE_URL+"api/download/categories";
+    public static String DOWNLOAD_SUBCATEGORIES = BASE_URL+"api/download/sub_categories";
+    public static String DOWNLOAD_LABELS = BASE_URL+"api/download/labels";
+    public static String DOWNLOAD_MENUS = BASE_URL+"api/download/menus";
+    public static String DOWNLOAD_TABLES = BASE_URL+"api/download/tables";
+    public static String DOWNLOAD_PAYMENT_METHOD = BASE_URL+"api/download/payment_method";
+    public static String CHECK_COUNT_CUSTOMER = BASE_URL+"api/download/check_count";
+    public static String CHECK_COUNT_MENUS = BASE_URL+"api/download/check_menus";
+    public static String CHECK_INGREDIENT_STOCK = BASE_URL+"api/download/checkIngredient/";
 } 

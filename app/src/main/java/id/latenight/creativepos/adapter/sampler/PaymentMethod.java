@@ -1,14 +1,16 @@
 package id.latenight.creativepos.adapter.sampler;
 
-public class Tables {
+public class PaymentMethod {
     private int id;
     private String name;
-    private int tables_id;
+    private int payment_method_id;
+    private String description;
 
-    public Tables(int id, String name, int tables_id) {
+    public PaymentMethod(int id, String name, int payment_method_id, String description) {
         this.id = id;
         this.name = name;
-        this.tables_id = tables_id;
+        this.payment_method_id = payment_method_id;
+        this.description = description;
     }
 
     public int getId() {
@@ -27,11 +29,19 @@ public class Tables {
         this.name = name;
     }
 
-    public int getTables_id() {
-        return tables_id;
+    public int getPayment_method_id() {
+        return payment_method_id;
     }
 
-    public void setTables_id(int tables_id) {
-        this.tables_id = tables_id;
+    public void setPayment_method_id(int payment_method_id) {
+        this.payment_method_id = payment_method_id;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

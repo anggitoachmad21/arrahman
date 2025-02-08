@@ -50,6 +50,7 @@
     <color name="delivery">#e0e5e6</color>
 
     <color name="black">#333333</color>
+    <color name="backgroundLoading">#C3FFFFFF</color>
     <color name="white">#FFFFFF</color>
     <color name="error">#c6222a</color>
     <color name="transparent">#FFFFFFFF</color>

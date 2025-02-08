@@ -1,4 +1,4 @@
-package id.latenight.creativepos.adapter;
+package id.latenight.creativepos.adapter.sampler;
 
 public class Categories {
     private int id;

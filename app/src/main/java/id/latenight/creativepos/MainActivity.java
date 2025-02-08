@@ -1,14 +1,7 @@
 package id.latenight.creativepos;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SearchView;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import static id.latenight.creativepos.util.CapitalizeText.capitalizeText;
+import static id.latenight.creativepos.util.MyApplication.RC_ENABLE_BLUETOOTH;
 
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
@@ -40,6 +33,17 @@ import android.widget.RadioButton;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NetworkResponse;
@@ -61,21 +65,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import id.latenight.creativepos.adapter.Cart;
 import id.latenight.creativepos.adapter.CartAdapter;
 import id.latenight.creativepos.adapter.Customer;
 import id.latenight.creativepos.adapter.Product;
 import id.latenight.creativepos.adapter.ProductAdapter;
-import id.latenight.creativepos.adapter.Cart;
+import id.latenight.creativepos.adapter.sampler.Categories;
+import id.latenight.creativepos.adapter.sampler.CustomerValues;
+import id.latenight.creativepos.adapter.sampler.Labels;
+import id.latenight.creativepos.adapter.sampler.Menus;
+import id.latenight.creativepos.adapter.sampler.SubCategories;
+import id.latenight.creativepos.adapter.sampler.Tables;
 import id.latenight.creativepos.util.DatabaseHandler;
-import id.latenight.creativepos.util.MemberAutoUpdate;
 import id.latenight.creativepos.util.MyApplication;
-import id.latenight.creativepos.util.SearchableListDialog;
+import id.latenight.creativepos.util.SearchableSpinner;
 import id.latenight.creativepos.util.SessionManager;
 import id.latenight.creativepos.util.URI;
-import id.latenight.creativepos.util.SearchableSpinner;
-
-import static id.latenight.creativepos.util.CapitalizeText.capitalizeText;
-import static id.latenight.creativepos.util.MyApplication.RC_ENABLE_BLUETOOTH;
 
 public class MainActivity extends AppCompatActivity implements ProductAdapter.ImageAdapterListener, CartAdapter.AdapterListener, View.OnClickListener {
 
@@ -135,6 +140,9 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
 
     private EditText customerNew;
 
+    private int socketTimeout = 30000;
+    private int maxRetries = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -145,7 +153,6 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         db = new DatabaseHandler(this);
 
         sessionManager = new SessionManager(this);
-        //Log.e("Printer", printerAddress);
 
         formatRupiah = NumberFormat.getInstance();
 
@@ -213,7 +220,6 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         radioDelivery = findViewById(R.id.radioDelivery);
         radioTaken = findViewById(R.id.radioTaken);
 
-        //Log.e("Outlet ID ", sessionManager.getOutlet());
         if(sessionManager.getOutlet().equals("3")) {
             lytBtnTaken.setVisibility(View.VISIBLE);
             lytBtnDineIn.setVisibility(View.GONE);
@@ -321,11 +327,7 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         tabCategory = findViewById(R.id.tab_category);
 
         getCustomers("");
-//        getCategories();
         getTables();
-        MemberAutoUpdate memberAutoUpdate = new MemberAutoUpdate();
-        memberAutoUpdate.updated(this);
-//        customerListNew();
     }
 
     private void addDiscountForm() {
@@ -394,7 +396,6 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         mAlertDialog.show();
     }
 
-    // untuk mengosongi edittext
     private void kosong(){
         txt_name.setText(null);
         txt_car_type.setText(null);
@@ -428,8 +429,6 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
                 String handphone    = txt_handphone.getText().toString();
                 String address      = txt_address.getText().toString();
 
-                //Log.e("Result","Nama : " + name + "\n" + "HP : " + handphone + "\n" + "Alamat : " + address + "\n");
-
                 if(name.isEmpty()) {
                     txt_name.setHintTextColor(getResources().getColor(R.color.error));
                     txt_name.setBackgroundResource(R.drawable.border_error);
@@ -449,7 +448,6 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         showLoading();
         StringRequest postRequest = new StringRequest(Request.Method.POST, URI.API_ADD_CUSTOMER,
                 response -> {
-                    //Log.e("RESPONSE ", response);
                     try {
                         JSONObject jsonObject = new JSONObject(response);
                         boolean error = jsonObject.getBoolean("error");
@@ -460,6 +458,8 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
                             String msg_name = jsonObject.getString("name");
                             getCustomers(msg_name);
                             showSuccess(msg);
+                            JSONObject customer_info = new JSONObject(jsonObject.getString("data"));
+                            db.addCustomers(customer_info.getString("name"), customer_info.getInt("id"), customer_info.getInt("is_member"));
                         }
                     } catch (JSONException e) {
                         showError("Terjadi kesalahan server");
@@ -534,7 +534,6 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
                     radioDelivery.setChecked(false);
                     radioTaken.setChecked(true);
                     orderType = "4";
-                    //Log.e("order type", orderType);
                 }
                 break;
         }
@@ -581,17 +580,6 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
                 String rupiah = formatRupiah.format(totalPrice).replace(',', '.');
                 totalCart.setText(getResources().getString(R.string.currency) + " " + rupiah);
 
-//                int getDiscount = jsonObject.getInt("total_discount_amount");
-//                if(getDiscount != 0) {
-//                    discount.setText(String.valueOf(getDiscount));
-//                    useDiscount();
-//                }
-//
-//                String getDiscountSalon = jsonObject.getString("total_discount_salon_amount").replace("%", "");
-//                if(!getDiscountSalon.equals("0")) {
-//                    discountSalon.setText(getDiscountSalon);
-//                    useDiscountSalon();
-//                }
                 if(update_order || split_bill) {
                     getOderCartListSecond(order_id);
                 }
@@ -660,42 +648,26 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
 
     public void customerListOnline(AlertDialog mAlertDialog, String param_keywords)
     {
-        StringRequest stringRequest = new StringRequest(URI.API_CUSTOMER_LIST_NEW+"?page="+param_customer+"&keyword="+param_keywords, response -> {
-            Log.e("RESPONSES LIST", response.toString());
-            try {
-                JSONArray arrys = new JSONArray(response);
-                LinearLayout customer = mAlertDialog.findViewById(R.id.listCustomer);
-                for (int i = 0; i < arrys.length(); i++) {
-                    @SuppressLint("InflateParams") View tableRow = LayoutInflater.from(getApplicationContext()).inflate(R.layout.list_customers_new, null, false);
-                    TextView plat_no = tableRow.findViewById(R.id.plat_no);
-                    TextView status = tableRow.findViewById(R.id.status);
-                    String name = "";
-                    try {
-                        JSONObject jsonObject = arrys.getJSONObject(i);
-                        String splits = customerList.get(i);
-                        name = jsonObject.getString("name");
-                        plat_no.setText(jsonObject.getString("name"));
-                        if(jsonObject.getInt("is_member") == 1) {
-                            status.setText("Member");
-                        }
-                        String finalName = name;
-                        tableRow.setOnClickListener(view -> {
-                            spinnerCustomer.setSelection(customerList.indexOf(finalName));
-                            Log.e("Name", finalName);
-                            mAlertDialog.dismiss();
-                        });
-                    } catch (JSONException e) {
-                        throw new RuntimeException(e);
-                    }
-                    customer.addView(tableRow);
-                }
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
+        List <CustomerValues> customerValuesList = db.getAllCustomer(param_page, param_keywords);
+        LinearLayout customer = mAlertDialog.findViewById(R.id.listCustomer);
+        for (int i=0; i < customerValuesList.size(); i++){
+            @SuppressLint("InflateParams") View tableRow = LayoutInflater.from(getApplicationContext()).inflate(R.layout.list_customers_new, null, false);
+            TextView plat_no = tableRow.findViewById(R.id.plat_no);
+            TextView status = tableRow.findViewById(R.id.status);
+            String name = "";
+            String splits = customerList.get(i);
+            name = customerValuesList.get(i).getName();
+            plat_no.setText(customerValuesList.get(i).getName());
+            if(customerValuesList.get(i).getIs_member() == 1) {
+               status.setText("Member");
             }
-        }, error -> {
-        });
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
-        requestQueue.add(stringRequest);
+            String finalName = name;
+            tableRow.setOnClickListener(view -> {
+                spinnerCustomer.setSelection(customerList.indexOf(finalName));
+                mAlertDialog.dismiss();
+            });
+            customer.addView(tableRow);
+        }
     }
 
     private void customerListNew()
@@ -750,39 +722,40 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
     }
 
     private void getMenuList(String api_customer_id, String api_category, String api_sub_category, String api_label) {
-        String params = "/"+api_customer_id+"/"+api_category+"/"+api_sub_category+"/"+api_label;
-        String API_MENU = URI.API_MENU+sessionManager.getId()+params+"?page="+param_page+"&keyword="+param_keyword;
-        Log.e("URL_", API_MENU);
+        List<Categories> categories = db.getCategoriesName(api_category);
+        int cat_id = 0;
+        for (int i=0; i<categories.size(); i++){
+            cat_id = categories.get(i).getCategories_id();
+            break;
+        }
+        List<SubCategories> subcategories = db.getSubCategories(api_sub_category);
+        int sub_id = 0;
+        for (int i=0; i < subcategories.size(); i++){
+            sub_id = subcategories.get(i).getSub_categories_id();
+            break;
+        }
+        List<Labels> labels = db.getLabelName(api_label);
+        int label_id = 0;
+        for (int i=0; i<labels.size(); i++){
+            label_id = labels.get(i).getLabel_id();
+            break;
+        }
+        List <Menus> menusList = db.getAllMenus(param_keyword, param_page, cat_id, sub_id, label_id);
         progressBar.setVisibility(View.VISIBLE);
-        request = new JsonArrayRequest(API_MENU, response -> {
-            JSONObject jsonObject;
-            //Log.e("Response", response.toString());
-            for (int i = 0; i < response.length(); i++){
-                try {
-                    jsonObject = response.getJSONObject(i);
-                    Product listData = new Product(jsonObject.getInt("id"), jsonObject.getString("photo"), jsonObject.getString("name"), jsonObject.getInt("sale_price"), jsonObject.getInt("reseller_price"), jsonObject.getInt("outlet_price"), jsonObject.getInt("partner_price"), jsonObject.getInt("online_price"), jsonObject.getInt("ingredient_stock"));
-                    list_product.add(listData);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-            productAdapter.notifyDataSetChanged();
-            progressBar.setVisibility(View.GONE);
-        }, error -> progressBar.setVisibility(View.GONE));
-        requestQueue= Volley.newRequestQueue(this);
-        requestQueue.add(request);
-        request.setRetryPolicy(new DefaultRetryPolicy(
-                0,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        for (int i = 0; i < menusList.size(); i++) {
+            int salePrice = menusList.get(i).getSale_price();
+            Product listData = new Product(menusList.get(i).getMenu_id(), menusList.get(i).getPhoto(), menusList.get(i).getName(), salePrice, menusList.get(i).getReseller_price(), menusList.get(i).getOutlet_price(), menusList.get(i).getPartner_price(), menusList.get(i).getOnline_price(), menusList.get(i).getIngredient_stock(), api_customer_id);
+            list_product.add(listData);
+        }
+        productAdapter.notifyDataSetChanged();
+        progressBar.setVisibility(View.GONE);
     }
 
     private void getCustomers(String val_customer_name) {
-        customerList = new ArrayList<>(Arrays.asList(sessionManager.getCustomers().split(",")));
-        customerList.add(val_customer_name);
-
-        String array_customer = Arrays.toString(customerList.toArray());
-        sessionManager.setCustomers(array_customer.replace("]","").replace("[","").replace(" ",""));
+        List <CustomerValues> customerValuesList = db.getAllCustomer(0, "");
+        for (int i=0; i<customerValuesList.size(); i++){
+            customerList.add(customerValuesList.get(i).getName());
+        }
 
         if(update_order || split_bill) {
             customerList.remove(param_customer_id);
@@ -797,8 +770,6 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
                 // your code here
-                //Log.e("Spinner", String.valueOf(list_customer.get(position).getCounter()));
-//                customerListNew();
                 getCustomerInfo(spinnerCustomer.getSelectedItem().toString());
 
                 list_cart.clear();
@@ -815,62 +786,6 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
                 // your code here
             }
         });
-    }
-
-    private void getCustomersOnline(String val_customer_name) {
-        progressBar.setVisibility(View.VISIBLE);
-        Log.e("URL_", URI.API_CUSTOMER+sessionManager.getId());
-        customerList.clear();
-        request = new JsonArrayRequest(URI.API_CUSTOMER+sessionManager.getId(), response -> {
-            JSONObject jsonObject;
-            //Log.e("Response", response.toString());
-            for (int i = 0; i < response.length(); i++){
-                try {
-                    jsonObject = response.getJSONObject(i);
-                    Customer listData = new Customer(jsonObject.getInt("id"), jsonObject.getString("name"), jsonObject.getString("car_type"), jsonObject.getInt("counter"), jsonObject.getInt("total_redeem"), jsonObject.getInt("total_visit"), jsonObject.getString("last_visit"));
-                    list_customer.add(listData);
-                    customerList.add(jsonObject.getString("name"));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-            if(update_order || split_bill) {
-                customerList.remove(param_customer_id);
-            } else {
-                spinnerCustomer.setAdapter(new ArrayAdapter<>(getApplicationContext(), R.layout.spinner_item, customerList));
-            }
-            getCategories();
-            if(!val_customer_name.isEmpty()) {
-                spinnerCustomer.setSelection(customerList.indexOf(val_customer_name));
-            }
-            spinnerCustomer.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                    // your code here
-                    //Log.e("Spinner", String.valueOf(list_customer.get(position).getCounter()));
-
-                    TextView freeWashInfo = findViewById(R.id.free_wash_info);
-                    freeWashInfo.setText((5-list_customer.get(position).getCounter()) + "X lagi untuk cuci gratis");
-
-                    list_cart.clear();
-                    cartAdapter.notifyDataSetChanged();
-                    onUpdatePrice(0);
-                    param_customer_id = spinnerCustomer.getSelectedItem().toString();
-                    getMenuList(param_customer_id, param_category, param_subcategory, param_label);
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> parentView) {
-                    // your code here
-                }
-            });
-
-            progressBar.setVisibility(View.GONE);
-        }, error -> {
-            progressBar.setVisibility(View.GONE);
-        });
-        requestQueue= Volley.newRequestQueue(this);
-        requestQueue.add(request);
     }
 
     private void getCustomerInfo(String customer_name) {
@@ -896,6 +811,7 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
                     diskon_member_use.setText(jsonObject1.getString("message_discount"));
                     return;
                 }
+                lyt_no_member.setVisibility(View.VISIBLE);
                 freeWashInfo.setText((5-jsonObject.getInt("counter")) + "X lagi untuk cuci gratis");
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -906,100 +822,97 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         requestQueue.add(stringRequest);
     }
 
-//    @SuppressLint("SetTextI18n")
-//    private void getSearchCustomers() {
-//        Log.e("URL_", URI.API_CUSTOMER+sessionManager.getId()+"?page=1&keyword="+param_keyword_customer);
-//        list_customer.clear();
-//        suggestions.clear();
-//        request = new JsonArrayRequest(URI.API_CUSTOMER+sessionManager.getId()+"?page=1&keyword="+param_keyword_customer, response -> {
-//            JSONObject jsonObject;
-//            //Log.e("Response", response.toString());
-//            for (int i = 0; i < response.length(); i++){
-//                try {
-//                    jsonObject = response.getJSONObject(i);
-//                    Customer listData = new Customer(jsonObject.getInt("id"), jsonObject.getString("name"), jsonObject.getString("car_type"), jsonObject.getInt("counter"), jsonObject.getInt("total_redeem"), jsonObject.getInt("total_visit"), jsonObject.getString("last_visit"));
-//                    list_customer.add(listData);
-//                    suggestions.add(jsonObject.getString("name"));
-//                } catch (JSONException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//            spinnerCustomerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_expandable_list_item_1, suggestions);
-//            selectCustomer.setAdapter(spinnerCustomerAdapter);
-//            spinnerCustomerAdapter.notifyDataSetChanged();
-//            selectCustomer.showDropDown();
-//
-//            String selectedItem = selectCustomer.getText().toString();
-//
-//            for (Customer customer: list_customer) {
-//                Log.e("list",customer.getName());
-//                if (customer.getName().equalsIgnoreCase(selectedItem)) {
-//                    TextView freeWashInfo = findViewById(R.id.free_wash_info);
-//
-//                    Log.e("counter",  customer.getName() + " = " + String.valueOf(customer.getCounter()));
-//                    freeWashInfo.setText((5-customer.getCounter()) + "X lagi untuk cuci gratis");
-//                    selectCustomer.clearFocus();
-//                    if(selectCustomer.isPopupShowing()) {
-//                        selectCustomer.dismissDropDown();
-//                    }
-//                    InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-//                    in.hideSoftInputFromWindow(selectCustomer.getWindowToken(), 0);
-//
-//                    list_cart.clear();
-//                    cartAdapter.notifyDataSetChanged();
-//                    onUpdatePrice(0);
-//                    param_customer_id = selectedItem;
-//                    list_product.clear();
-//                    param_page = 1;
-//                    getMenuList(param_customer_id, param_category, param_subcategory, param_label);
-//                    if(update_order || split_bill) {
-//                        getOderCartListSecond(order_id);
-//                    }
-//                }
-//            }
-//        }, error -> {
-//        });
-//        requestQueue= Volley.newRequestQueue(this);
-//        requestQueue.add(request);
-//    }
-
     private void getCategories() {
-        Log.e("URL_", URI.API_MAIN_CATEGORIES+sessionManager.getId());
-        request = new JsonArrayRequest(URI.API_MAIN_CATEGORIES+sessionManager.getId(), response -> {
-            JSONObject jsonObject;
-            //Log.e("Response", response.toString());
-            tabCategory.removeAllTabs();
-            btnBackTab.setVisibility(View.GONE);
-            param_category = "0";
-            param_subcategory = "0";
-            param_label = "0";
-            tabCategory.addTab(tabCategory.newTab().setText("Semua Produk"));
-            for (int i = 0; i < response.length(); i++){
-                try {
-                    jsonObject = response.getJSONObject(i);
-                    String title_new = jsonObject.getString("category_name").toLowerCase();
-                    String capitalize = capitalizeText(title_new);
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        tabCategory.addTab(tabCategory.newTab().setText(Html.fromHtml(capitalize, Html.FROM_HTML_MODE_LEGACY)));
-                    } else {
-                        tabCategory.addTab(tabCategory.newTab().setText(Html.fromHtml(capitalize)));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
+        tabCategory.removeAllTabs();
+        btnBackTab.setVisibility(View.GONE);
+        param_category = "0";
+        param_subcategory = "0";
+        param_label = "0";
+        tabCategory.addTab(tabCategory.newTab().setText("Semua Produk"));
+
+        List <Categories> categoriesList = db.getAllCategories();
+        for (int i = 0; i < categoriesList.size(); i++){
+            String title_new = categoriesList.get(i).getName().toLowerCase();
+            String capitalize = capitalizeText(title_new);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                tabCategory.addTab(tabCategory.newTab().setText(Html.fromHtml(capitalize, Html.FROM_HTML_MODE_LEGACY)));
+            } else {
+                tabCategory.addTab(tabCategory.newTab().setText(Html.fromHtml(capitalize)));
+            }
+        }
+        tabCategory.setOnTabSelectedListener(new TabLayout.BaseOnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                list_product.clear();
+                param_page = 1;
+                param_category = tab.getText().toString();
+                if(param_category.equals("Semua Produk")) {
+                    getMenuList(param_customer_id, param_category, param_subcategory, param_label);
+                } else {
+                    getSubCategories(param_category);
                 }
             }
 
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+                list_product.clear();
+                param_page = 1;
+                param_category = tab.getText().toString();
+                //Log.e("tab", param_category);
+                if(param_category.equals("Semua Produk")) {
+                    getMenuList(param_customer_id, param_category, param_subcategory, param_label);
+                } else {
+                    getSubCategories(param_category);
+                }
+            }
+        });
+    }
+
+    private void getSubCategories(String category) {
+        btnBackTab.setVisibility(View.VISIBLE);
+        btnBackTab.setOnClickListener(v -> getCategories());
+        tabCategory.removeAllTabs();
+        tabCategory.clearOnTabSelectedListeners();
+        tabCategory.addTab(tabCategory.newTab().setText("Semua Produk"));
+
+        List<Categories> categories = db.getCategoriesName(category);
+        int cat_id = 0;
+        for (int i=0; i<categories.size(); i++){
+            cat_id = categories.get(i).getCategories_id();
+            break;
+        }
+        Log.e("NAME", category);
+        Log.e("RESPONSE ITEM", String.valueOf(cat_id));
+        List <SubCategories> subCategoriesList = db.getAllSubCategories(cat_id);
+        if(subCategoriesList.size() > 0) {
+            for (int i = 0; i < subCategoriesList.size(); i++) {
+                String title_new = subCategoriesList.get(i).getName().toLowerCase();
+                String capitalize = capitalizeText(title_new);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    tabCategory.addTab(tabCategory.newTab().setText(Html.fromHtml(capitalize, Html.FROM_HTML_MODE_LEGACY)));
+                } else {
+                    tabCategory.addTab(tabCategory.newTab().setText(Html.fromHtml(capitalize)));
+                }
+            }
+            list_product.clear();
+            param_page = 1;
+            getMenuList(param_customer_id, param_category, param_subcategory, param_label);
             tabCategory.setOnTabSelectedListener(new TabLayout.BaseOnTabSelectedListener() {
                 @Override
                 public void onTabSelected(TabLayout.Tab tab) {
                     list_product.clear();
                     param_page = 1;
-                    param_category = tab.getText().toString();
-                    //Log.e("tab", param_category);
-                    if(param_category.equals("Semua Produk")) {
+                    param_subcategory = tab.getText().toString();
+                    //Log.e("sub_tab", param_subcategory);
+                    if(param_subcategory.equals("Semua Produk")) {
                         getMenuList(param_customer_id, param_category, param_subcategory, param_label);
                     } else {
-                        getSubCategories(param_category);
+                        getLabels(param_subcategory);
                     }
                 }
 
@@ -1012,191 +925,123 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
                 public void onTabReselected(TabLayout.Tab tab) {
                     list_product.clear();
                     param_page = 1;
-                    param_category = tab.getText().toString();
-                    //Log.e("tab", param_category);
-                    if(param_category.equals("Semua Produk")) {
+                    param_subcategory = tab.getText().toString();
+                    //Log.e("sub_tab", param_category);
+                    if(param_subcategory.equals("Semua Produk")) {
                         getMenuList(param_customer_id, param_category, param_subcategory, param_label);
                     } else {
-                        getSubCategories(param_category);
+                        getLabels(param_subcategory);
                     }
                 }
             });
-        }, error -> {
-        });
-        requestQueue= Volley.newRequestQueue(this);
-        requestQueue.add(request);
-    }
-
-    private void getSubCategories(String category) {
-        Log.e("URL_", URI.API_CATEGORIES+sessionManager.getId()+"/"+category);
-        request = new JsonArrayRequest(URI.API_CATEGORIES+sessionManager.getId()+"/"+category, response -> {
-            JSONObject jsonObject;
-            //Log.e("Response", response.toString());
-            btnBackTab.setVisibility(View.VISIBLE);
-            btnBackTab.setOnClickListener(v -> getCategories());
-            if(response.length() > 0) {
-                tabCategory.removeAllTabs();
-                tabCategory.clearOnTabSelectedListeners();
-                tabCategory.addTab(tabCategory.newTab().setText("Semua Produk"));
-                for (int i = 0; i < response.length(); i++) {
-                    try {
-                        jsonObject = response.getJSONObject(i);
-                        String title_new = jsonObject.getString("category_name").toLowerCase();
-                        String capitalize = capitalizeText(title_new);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                            tabCategory.addTab(tabCategory.newTab().setText(Html.fromHtml(capitalize, Html.FROM_HTML_MODE_LEGACY)));
-                        } else {
-                            tabCategory.addTab(tabCategory.newTab().setText(Html.fromHtml(capitalize)));
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-                list_product.clear();
-                param_page = 1;
-                getMenuList(param_customer_id, param_category, param_subcategory, param_label);
-                tabCategory.setOnTabSelectedListener(new TabLayout.BaseOnTabSelectedListener() {
-                    @Override
-                    public void onTabSelected(TabLayout.Tab tab) {
-                        list_product.clear();
-                        param_page = 1;
-                        param_subcategory = tab.getText().toString();
-                        //Log.e("sub_tab", param_subcategory);
-                        if(param_subcategory.equals("Semua Produk")) {
-                            getMenuList(param_customer_id, param_category, param_subcategory, param_label);
-                        } else {
-                            getLabels(param_subcategory);
-                        }
-                    }
-
-                    @Override
-                    public void onTabUnselected(TabLayout.Tab tab) {
-
-                    }
-
-                    @Override
-                    public void onTabReselected(TabLayout.Tab tab) {
-                        list_product.clear();
-                        param_page = 1;
-                        param_subcategory = tab.getText().toString();
-                        //Log.e("sub_tab", param_category);
-                        if(param_subcategory.equals("Semua Produk")) {
-                            getMenuList(param_customer_id, param_category, param_subcategory, param_label);
-                        } else {
-                            getLabels(param_subcategory);
-                        }
-                    }
-                });
-            } else {
-                list_product.clear();
-                param_page = 1;
-                getMenuList(param_customer_id, param_category, param_subcategory, param_label);
-            }
-        }, error -> {
-        });
-        requestQueue= Volley.newRequestQueue(this);
-        requestQueue.add(request);
+        } else {
+            list_product.clear();
+            param_page = 1;
+            getMenuList(param_customer_id, param_category, param_subcategory, param_label);
+        }
     }
 
     private void getLabels(String category) {
-        Log.e("URL_", URI.API_LABELS+sessionManager.getId()+"/"+category);
-        request = new JsonArrayRequest(URI.API_LABELS+sessionManager.getId()+"/"+category, response -> {
-            JSONObject jsonObject;
-            //Log.e("Response", response.toString());
-            btnBackTab.setVisibility(View.VISIBLE);
-            btnBackTab.setOnClickListener(v -> getCategories());
-            if(response.length() > 0) {
-                tabCategory.removeAllTabs();
-                tabCategory.clearOnTabSelectedListeners();
-                tabCategory.addTab(tabCategory.newTab().setText("Semua Produk"));
-                for (int i = 0; i < response.length(); i++) {
-                    try {
-                        jsonObject = response.getJSONObject(i);
-                        String title_new = jsonObject.getString("label_name").toLowerCase();
-                        String capitalize = capitalizeText(title_new);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                            tabCategory.addTab(tabCategory.newTab().setText(Html.fromHtml(capitalize, Html.FROM_HTML_MODE_LEGACY)));
-                        } else {
-                            tabCategory.addTab(tabCategory.newTab().setText(Html.fromHtml(capitalize)));
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+        btnBackTab.setVisibility(View.VISIBLE);
+        btnBackTab.setOnClickListener(v -> getCategories());
+        List<SubCategories> subcategories = db.getSubCategories(category);
+        int sub_id = 0;
+        for (int i=0; i<subcategories.size(); i++){
+            sub_id = subcategories.get(i).getCategories_id();
+            break;
+        }
+        List <Labels> labelsList = db.getAllLabels(sub_id);
+        if(labelsList.size() > 0) {
+            tabCategory.removeAllTabs();
+            tabCategory.clearOnTabSelectedListeners();
+            tabCategory.addTab(tabCategory.newTab().setText("Semua Produk"));
+            for (int i = 0; i < labelsList.size(); i++) {
+                String title_new = labelsList.get(i).getName().toLowerCase();
+                String capitalize = capitalizeText(title_new);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    tabCategory.addTab(tabCategory.newTab().setText(Html.fromHtml(capitalize, Html.FROM_HTML_MODE_LEGACY)));
+                } else {
+                    tabCategory.addTab(tabCategory.newTab().setText(Html.fromHtml(capitalize)));
                 }
-                list_product.clear();
-                param_page = 1;
-                getMenuList(param_customer_id, param_category, param_subcategory, param_label);
-                tabCategory.setOnTabSelectedListener(new TabLayout.BaseOnTabSelectedListener() {
-                    @Override
-                    public void onTabSelected(TabLayout.Tab tab) {
-                        list_product.clear();
-                        param_page = 1;
-                        param_label = tab.getText().toString();
-                        //Log.e("label", param_label);
-                        getMenuList(param_customer_id, param_category, param_subcategory, param_label);
-                    }
-
-                    @Override
-                    public void onTabUnselected(TabLayout.Tab tab) {
-
-                    }
-
-                    @Override
-                    public void onTabReselected(TabLayout.Tab tab) {
-                        list_product.clear();
-                        param_page = 1;
-                        getMenuList(param_customer_id, param_category, param_subcategory, param_label);
-                    }
-                });
-            } else {
-                list_product.clear();
-                param_page = 1;
-                getMenuList(param_customer_id, param_category, param_subcategory, param_label);
             }
-        }, error -> {
-        });
-        requestQueue= Volley.newRequestQueue(this);
-        requestQueue.add(request);
+            list_product.clear();
+            param_page = 1;
+            getMenuList(param_customer_id, param_category, param_subcategory, param_label);
+            tabCategory.setOnTabSelectedListener(new TabLayout.BaseOnTabSelectedListener() {
+                @Override
+                public void onTabSelected(TabLayout.Tab tab) {
+                    list_product.clear();
+                    param_page = 1;
+                    param_label = tab.getText().toString();
+                    //Log.e("label", param_label);
+                    getMenuList(param_customer_id, param_category, param_subcategory, param_label);
+                }
+
+                @Override
+                public void onTabUnselected(TabLayout.Tab tab) {
+
+                }
+
+                @Override
+                public void onTabReselected(TabLayout.Tab tab) {
+                    list_product.clear();
+                    param_page = 1;
+                    getMenuList(param_customer_id, param_category, param_subcategory, param_label);
+                }
+            });
+        } else {
+            list_product.clear();
+            param_page = 1;
+            getMenuList(param_customer_id, param_category, param_subcategory, param_label);
+        }
     }
 
     private void getTables() {
-        //Log.e("URL_", URI.API_TABLE);
-        request = new JsonArrayRequest(URI.API_TABLE, response -> {
-            JSONObject jsonObject;
-            //Log.e("Response", response.toString());
-            for (int i = 0; i < response.length(); i++){
-                try {
-                    jsonObject = response.getJSONObject(i);
-                    tableList.add(jsonObject.getString("name"));
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-            spinnerTable.setAdapter(new ArrayAdapter<>(getApplicationContext(), R.layout.spinner_item, tableList));
-        }, error -> {
-        });
-        requestQueue= Volley.newRequestQueue(this);
-        requestQueue.add(request);
+        List <Tables> tablesList = db.getAllTables();
+        for (int i=0; i<tablesList.size(); i++) {
+            tableList.add(tablesList.get(i).getName());
+        }
     }
 
     @Override
     public void onImageSelected(Product item) {
-        if(item.getIngredientStock() == 0) {
-            showLoading();
-            showError(getResources().getString(R.string.out_of_stock));
-        } else {
-            InputMethodManager inputManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-            if (getCurrentFocus() != null) {
-                inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+        showLoading();
+        StringRequest stringRequest = new StringRequest(URI.CHECK_INGREDIENT_STOCK+item.getId()+"?customer_name="+item.getCustomer_name(), response -> {
+            try {
+                hideLoading();
+                JSONObject jsonObject = new JSONObject(response);
+                if(jsonObject.getInt("ingredient_stock") == 0) {
+                    showError(getResources().getString(R.string.out_of_stock));
+                } else {
+                    InputMethodManager inputManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                    if (getCurrentFocus() != null) {
+                        inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+                    }
+                    recyclerMenu.requestFocus();
+                    addItem(item, jsonObject.getInt("new_price"));
+                }
+            } catch (JSONException e) {
+                hideLoading();
+                Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show();
+                throw new RuntimeException(e);
             }
-            recyclerMenu.requestFocus();
-            addItem(item);
-        }
+        }, error -> {
+            hideLoading();
+            Toast.makeText(this, error.toString(), Toast.LENGTH_SHORT).show();
+        });
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        stringRequest.setRetryPolicy(
+                new DefaultRetryPolicy(
+                        socketTimeout,
+                        maxRetries,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+                )
+        );
+        requestQueue.add(stringRequest);
     }
 
     @SuppressLint("SetTextI18n")
-    private void addItem(Product item) {
+    private void addItem(Product item, int newPrice) {
         if(use_discount) {
             removeDiscount();
         }
@@ -1206,30 +1051,10 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         if(use_discount_jok) {
             removeDiscountJok();
         }
-
-//        String selectedCustomer = spinnerCustomer.getSelectedItem().toString();
-//        int valuePrice;
-//        switch (selectedCustomer) {
-//            case "Outlet":
-//                valuePrice = item.getOutletPrice();
-//                break;
-//            case "Mitra":
-//                valuePrice = item.getPartnerPrice();
-//                break;
-//            case "Reseller":
-//                valuePrice = item.getResellerPrice();
-//                break;
-//            case "Gojek":
-//            case "Grab":
-//                valuePrice = item.getOnlinePrice();
-//                break;
-//            default:
-//                valuePrice = item.getPrice();
-//                break;
-//        }
-        //Log.e("price", String.valueOf(valuePrice));
-
         int valuePrice = item.getPrice();
+        if(newPrice!=0){
+            valuePrice = newPrice;
+        }
         Cart listData = new Cart(item.getId(), item.getTitle(), valuePrice, valuePrice, 1);
         list_cart.add(listData);
         cartAdapter.notifyItemChanged(-1);
@@ -1552,8 +1377,6 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         } else {
             URL_POST = URI.API_PLACE_ORDER;
         }
-        //Log.e("POST ", URL_POST);
-
         StringRequest postRequest = new StringRequest(Request.Method.POST, URL_POST,
                 response -> {
                     Log.e("RESPONSE ", response);

@@ -2,6 +2,7 @@ package id.latenight.creativepos.adapter;
 
 import android.content.Context;
 import android.text.Html;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,7 +54,9 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
         String title_new = listData.getTitle().toLowerCase();
         String capitalize = capitalizeText(title_new);
         holder.title.setText(Html.fromHtml(capitalize));
-
+        holder.itemView.setOnClickListener(view -> {
+            listener.onImageSelected(product.get(position));
+        });
     }
 
     @Override
@@ -68,11 +71,6 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
             super(itemView);
             img = itemView.findViewById(R.id.image_view);
             title = itemView.findViewById(R.id.title_view);
-
-            itemView.setOnClickListener(view -> {
-                // send selected berita in callback
-                listener.onImageSelected(product.get(getAdapterPosition()));
-            });
         }
     }
 

@@ -578,38 +578,22 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
     }
 
     private void getPaymentMethods() {
-        //Log.e("URL_", URI.API_PAYMENT_METHOD);
-        //Log.e("Response", response.toString());
-        @SuppressLint("SetTextI18n") JsonArrayRequest request = new JsonArrayRequest(URI.API_PAYMENT_METHOD+"/"+sessionManager.getId(), response -> {
-            JSONObject jsonObject;
-            //Log.e("Response", response.toString());
-            for (int i = 0; i < response.length(); i++) {
-                try {
-                    jsonObject = response.getJSONObject(i);
-                    PaymentMethod listData = new PaymentMethod(jsonObject.getInt("id"), jsonObject.getString("name"), jsonObject.getString("description"));
-                    paymentMethodList.add(listData);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-            paymentMethodAdapter.notifyDataSetChanged();
-            //params_payment_method_type = 3;
-
-            if(!paymentMethodList.get(0).getName().equals("TUNAI")) {
-                lyt_notes.setVisibility(View.VISIBLE);
-                lyt_transfer.setVisibility(View.VISIBLE);
-                givenAmount.setText(String.valueOf(params_total_payable));
-                changeAmount.setText("Rp. 0");
-            } else {
-                lyt_transfer.setVisibility(View.GONE);
-                lyt_notes.setVisibility(View.VISIBLE);
-            }
-            params_payment_method_type = paymentMethodList.get(0).getId();
-            //Log.e("Payment ", String.valueOf(paymentMethodList.get(0).getName()));
-        }, error -> {
-        });
-        requestQueue = Volley.newRequestQueue(this);
-        requestQueue.add(request);
+        List <id.latenight.creativepos.adapter.sampler.PaymentMethod> paymentMethodList1 = db.getAllPayment();
+        for (int i = 0; i < paymentMethodList1.size(); i++) {
+            PaymentMethod listData = new PaymentMethod(paymentMethodList1.get(i).getPayment_method_id(), paymentMethodList1.get(i).getName(), paymentMethodList1.get(i).getDescription());
+            paymentMethodList.add(listData);
+        }
+        paymentMethodAdapter.notifyDataSetChanged();
+        if(!paymentMethodList.get(0).getName().equals("TUNAI")) {
+            lyt_notes.setVisibility(View.VISIBLE);
+            lyt_transfer.setVisibility(View.VISIBLE);
+            givenAmount.setText(String.valueOf(params_total_payable));
+            changeAmount.setText("Rp. 0");
+        } else {
+            lyt_transfer.setVisibility(View.GONE);
+            lyt_notes.setVisibility(View.VISIBLE);
+        }
+        params_payment_method_type = paymentMethodList.get(0).getId();
     }
 
     @SuppressLint("SetTextI18n")

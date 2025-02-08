@@ -16,14 +16,7 @@ public class MemberAutoUpdate {
     {
         finish = "finish";
         StringRequest stringRequest = new StringRequest(URI.CHECK_AND_UPDATE, response -> {
-//            try {
-//                JSONObject jsonObject = new JSONObject(response);
-                Log.e("RESPONSE CHECK OTOMATIS", response);
-                finish = "finish";
-//            } catch (JSONException e) {
-//                finish = "cannot";
-//                throw new RuntimeException(e);
-//            }
+           finish = "finish";
         }, error -> {
             finish = "cannot";
         });

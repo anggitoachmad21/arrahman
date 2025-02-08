@@ -1,14 +1,14 @@
 package id.latenight.creativepos.adapter.sampler;
 
-public class Categories {
+public class Tables {
     private int id;
     private String name;
-    private int categories_id;
+    private int tables_id;
 
-    public Categories(int id, String name, int categories_id) {
+    public Tables(int id, String name, int tables_id) {
         this.id = id;
         this.name = name;
-        this.categories_id = categories_id;
+        this.tables_id = tables_id;
     }
 
     public int getId() {
@@ -27,11 +27,11 @@ public class Categories {
         this.name = name;
     }
 
-    public int getCategories_id() {
-        return categories_id;
+    public int getTables_id() {
+        return tables_id;
     }
 
-    public void setCategories_id(int categories_id) {
-        this.categories_id = categories_id;
+    public void setTables_id(int tables_id) {
+        this.tables_id = tables_id;
     }
 }

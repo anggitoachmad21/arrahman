@@ -33,6 +33,7 @@ public class SessionManager {
     private static final String KEY_ENABLE_PRINTER = "on";
     private static final String KEY_OPEN_REGISTRATION = "0";
     private static final String KEY_CUSTOMERS = "customers";
+    private static final String LAST_DOWNLOAD = "last_download_page";
 
     @SuppressLint("CommitPrefEdits")
     public SessionManager(Context context) {
@@ -148,6 +149,11 @@ public class SessionManager {
         Log.d(TAG, "User login session modified!");
     }
 
+    public void setLastDownload(String page) {
+        editor.putString(LAST_DOWNLOAD, page);
+        editor.commit();
+    }
+
     public boolean isLoggedIn(){
         return pref.getBoolean(KEY_IS_LOGGEDIN, false);
     }
@@ -190,5 +196,9 @@ public class SessionManager {
 
     public String getCustomers(){
         return pref.getString(KEY_CUSTOMERS, "");
+    }
+
+    public String getLastDownload(){
+        return pref.getString(LAST_DOWNLOAD, "");
     }
 }

@@ -18,17 +18,23 @@ import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.firebase.messaging.FirebaseMessaging;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import id.latenight.creativepos.util.MemberAutoUpdate;
+import id.latenight.creativepos.adapter.Product;
+import id.latenight.creativepos.adapter.sampler.CustomerValues;
+import id.latenight.creativepos.adapter.sampler.Menus;
+import id.latenight.creativepos.util.DatabaseHandler;
 import id.latenight.creativepos.util.MyApplication;
 import id.latenight.creativepos.util.SessionManager;
 import id.latenight.creativepos.util.URI;
@@ -110,9 +116,6 @@ public class MenuActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         registrationFCM();
-
-        MemberAutoUpdate memberAutoUpdate = new MemberAutoUpdate();
-        memberAutoUpdate.updated(this);
     }
 
     private void registrationFCM() {

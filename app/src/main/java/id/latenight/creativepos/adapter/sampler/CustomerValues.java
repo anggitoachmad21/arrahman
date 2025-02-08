@@ -1,16 +1,16 @@
 package id.latenight.creativepos.adapter.sampler;
 
-public class Labels {
+public class CustomerValues {
     private int id;
     private String name;
-    private int sub_categories_id;
-    private int label_id;
+    private int is_member;
+    private int user_id;
 
-    public Labels(int id, String name, int sub_categories_id, int label_id) {
+    public CustomerValues(int id, String name, int is_member, int user_id) {
         this.id = id;
         this.name = name;
-        this.sub_categories_id = sub_categories_id;
-        this.label_id = label_id;
+        this.is_member = is_member;
+        this.user_id = user_id;
     }
 
     public int getId() {
@@ -29,19 +29,19 @@ public class Labels {
         this.name = name;
     }
 
-    public int getSub_categories_id() {
-        return sub_categories_id;
+    public int getIs_member() {
+        return is_member;
     }
 
-    public void setSub_categories_id(int sub_categories_id) {
-        this.sub_categories_id = sub_categories_id;
+    public void setIs_member(int is_member) {
+        this.is_member = is_member;
     }
 
-    public int getLabel_id() {
-        return label_id;
+    public int getUser_id() {
+        return user_id;
     }
 
-    public void setLabel_id(int label_id) {
-        this.label_id = label_id;
+    public void setUser_id(int user_id) {
+        this.user_id = user_id;
     }
 }
