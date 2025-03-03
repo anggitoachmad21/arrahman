@@ -235,6 +235,7 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:visibility="invisible"
                             android:id="@+id/textView2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -242,10 +243,10 @@
                             android:text="@string/select_customer" />
 
                         <id.latenight.creativepos.util.SearchableSpinner
+                            android:visibility="invisible"
                             android:id="@+id/customer"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:visibility="invisible"
                             android:spinnerMode="dialog"/>
 
                         <EditText
@@ -407,7 +408,7 @@
                     </LinearLayout>
 
                 </LinearLayout>
-                
+
                 <LinearLayout
                     android:id="@+id/lyt_no_member"
                     android:layout_width="match_parent"

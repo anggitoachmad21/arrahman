@@ -1,8 +1,8 @@
 package id.latenight.creativepos.util;
 
 public class URI {
-    static final String BASE_URL = "https://devcarwash.cizypos.com/";
-//    static final String BASE_URL = "https://arrahman.cizypos.com/";
+//    static final String BASE_URL = "http://192.168.18.98/";
+    static final String BASE_URL = "https://arrahman.cizypos.com/";
 
     public static String API_LOGIN = BASE_URL+"api/cashier/login/";
     public static String CHECK_OPEN_REGISTER = BASE_URL+"api/cashier/checkOpenRegistration/";
@@ -70,6 +70,7 @@ public class URI {
 
     // download item
     public static String DOWNLOAD_CUSTOMER = BASE_URL+"api/download/customers";
+    public static String UPDATE_CUSTOMER_INFO = BASE_URL+"api/download/customers_info/";
     public static String DOWNLOAD_CATEGORIES = BASE_URL+"api/download/categories";
     public static String DOWNLOAD_SUBCATEGORIES = BASE_URL+"api/download/sub_categories";
     public static String DOWNLOAD_LABELS = BASE_URL+"api/download/labels";
@@ -79,4 +80,13 @@ public class URI {
     public static String CHECK_COUNT_CUSTOMER = BASE_URL+"api/download/check_count";
     public static String CHECK_COUNT_MENUS = BASE_URL+"api/download/check_menus";
     public static String CHECK_INGREDIENT_STOCK = BASE_URL+"api/download/checkIngredient/";
+
+    // PAGE ORDER DETAIL
+    public static String DOWNLOAD_WASHER = BASE_URL+"api/download/washers";
+    public static String DOWNLOAD_EMPLYOEE = BASE_URL+"api/download/employee";
+    public static String CHECK_COUNT_ORDER= BASE_URL+"api/download/check_count_order";
+
+    public static String DOWNLOAD_ORDER = BASE_URL+"api/download/orders";
+    public static String DOWNLOAD_ORDER_DETAIL = BASE_URL+"api/download/order/";
+    public static String DOWNLOAD_PPN = BASE_URL+"api/download/ppn";
 } 

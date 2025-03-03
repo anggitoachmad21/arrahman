@@ -50,6 +50,10 @@ import java.util.Map;
 
 import id.latenight.creativepos.adapter.PaymentMethod;
 import id.latenight.creativepos.adapter.PaymentMethodAdapter;
+import id.latenight.creativepos.adapter.sampler.Employee;
+import id.latenight.creativepos.adapter.sampler.Order;
+import id.latenight.creativepos.adapter.sampler.PPN;
+import id.latenight.creativepos.adapter.sampler.Washer;
 import id.latenight.creativepos.util.DatabaseHandler;
 import id.latenight.creativepos.util.MyApplication;
 import id.latenight.creativepos.util.SessionManager;
@@ -175,6 +179,34 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
 
         db = new DatabaseHandler(this);
 
+        if(db.getAllEmployee().size() == 0){
+            Toast.makeText(this, "Harap Download Data Employee Terlebih Dahulu", Toast.LENGTH_SHORT).show();
+            super.onBackPressed();
+            finish();
+            return;
+        }
+
+        if(db.getAllWasher("washer").size() == 0 || db.getAllWasher("worker").size() == 0){
+            Toast.makeText(this, "Harap Download Data Washer Terlebih Dahulu", Toast.LENGTH_SHORT).show();
+            super.onBackPressed();
+            finish();
+            return;
+        }
+
+        if(db.getAllPayment().size() == 0){
+            Toast.makeText(this, "Harap Download Data Payment Terlebih Dahulu", Toast.LENGTH_SHORT).show();
+            super.onBackPressed();
+            finish();
+            return;
+        }
+
+        if(db.getPPN().size() == 0){
+            Toast.makeText(this, "Harap Download Data PPN Terlebih Dahulu", Toast.LENGTH_SHORT).show();
+            super.onBackPressed();
+            finish();
+            return;
+        }
+
         if (extras != null) {
             order_id = extras.getString("order_id");
             //Log.e("DATA:", db.getSales(Integer.valueOf(order_id)).getData());
@@ -199,273 +231,266 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
 
     @SuppressLint("SetTextI18n")
     private void getOderCartList(String order_id) {
-        Log.e("URL_", URI.API_DETAIL_ORDER+order_id);
-        stringRequest = new StringRequest(URI.API_DETAIL_ORDER+order_id, response -> {
-            try {
-                JSONObject jsonObject = new JSONObject(response);
-                JSONArray jsonArray = jsonObject.getJSONArray("items");
-                //Log.e("RESPONSE", jsonObject.toString());
+        List<Order> orderList = db.getOrderBySale(Integer.parseInt(order_id));
+        try {
+            JSONObject jsonObject = new JSONObject(orderList.get(0).getOrder_details());
+            JSONArray jsonArray = jsonObject.getJSONArray("items");
 
-                order_type = jsonObject.getString("order_type");
+            order_type = jsonObject.getString("order_type");
 
-                switch (order_type) {
-                    case "1":
-                        orderType = getApplicationContext().getResources().getString(R.string.dine_in);
-                        break;
-                    case "2":
-                        orderType = getApplicationContext().getResources().getString(R.string.take_away);
-                        break;
-                    case "3":
-                        orderType = getApplicationContext().getResources().getString(R.string.delivery);
-                        break;
-                    default:
-                        spinnerLogistic.setSelection(logisticList.indexOf("Diambil"));
-                        orderType = getApplicationContext().getResources().getString(R.string.taken);
-                        break;
-                }
+            switch (order_type) {
+                case "1":
+                    orderType = getApplicationContext().getResources().getString(R.string.dine_in);
+                    break;
+                case "2":
+                    orderType = getApplicationContext().getResources().getString(R.string.take_away);
+                    break;
+                case "3":
+                    orderType = getApplicationContext().getResources().getString(R.string.delivery);
+                    break;
+                default:
+                    spinnerLogistic.setSelection(logisticList.indexOf("Diambil"));
+                    orderType = getApplicationContext().getResources().getString(R.string.taken);
+                    break;
+            }
 
-                String order_status = jsonObject.getString("order_status");
-                String payment_status = jsonObject.getString("payment_status");
-                String washer_name_1 = jsonObject.getString("washer_name_1");
-                String washer_name_2 = jsonObject.getString("washer_name_2");
-                String washer_name_3 = jsonObject.getString("washer_name_3");
-                boolean is_salon = jsonObject.getBoolean("is_salon");
+            String order_status = jsonObject.getString("order_status");
+            String payment_status = jsonObject.getString("payment_status");
+            String washer_name_1 = jsonObject.getString("washer_name_1");
+            String washer_name_2 = jsonObject.getString("washer_name_2");
+            String washer_name_3 = jsonObject.getString("washer_name_3");
+            boolean is_salon = jsonObject.getBoolean("is_salon");
 
-                TextView title_worker1 = findViewById(R.id.title_worker1);
-                TextView title_worker2 = findViewById(R.id.title_worker2);
-                TextView title_worker3 = findViewById(R.id.title_worker3);
-                TextView value_worker1 = findViewById(R.id.value_worker1);
-                TextView value_worker2 = findViewById(R.id.value_worker2);
-                TextView value_worker3 = findViewById(R.id.value_worker3);
-                String queue_no = jsonObject.getString("queue_no");
-                waiter.setText(queue_no);
+            TextView title_worker1 = findViewById(R.id.title_worker1);
+            TextView title_worker2 = findViewById(R.id.title_worker2);
+            TextView title_worker3 = findViewById(R.id.title_worker3);
+            TextView value_worker1 = findViewById(R.id.value_worker1);
+            TextView value_worker2 = findViewById(R.id.value_worker2);
+            TextView value_worker3 = findViewById(R.id.value_worker3);
+            String queue_no = jsonObject.getString("queue_no");
+            waiter.setText(queue_no);
 
-                if(payment_status.equals("1")) {
-                    lytPayment.setVisibility(View.GONE);
-                }
-                int log_status = jsonObject.getInt("status");
+            if (payment_status.equals("1")) {
+                lytPayment.setVisibility(View.GONE);
+            }
+            int log_status = jsonObject.getInt("status");
 
-                params_vvip = jsonObject.getInt("vvip_order");
-                if(params_vvip == 1){
-                    if(log_status == 5) {
-                        lytvvip.setVisibility(View.VISIBLE);
-                    }
+            params_vvip = jsonObject.getInt("vvip_order");
+            if (params_vvip == 1) {
+                if (log_status == 5) {
                     lytvvip.setVisibility(View.VISIBLE);
                 }
+                lytvvip.setVisibility(View.VISIBLE);
+            }
 
-                if(order_status.equals("5")) {
-                    getWashers("washer");
-                    lytPayment.setVisibility(View.GONE);
-                    title_worker3.setVisibility(View.GONE);
-                    spinnerWasher3.setVisibility(View.GONE);
+            if (order_status.equals("5")) {
+                getWashers("washer");
+                lytPayment.setVisibility(View.GONE);
+                title_worker3.setVisibility(View.GONE);
+                spinnerWasher3.setVisibility(View.GONE);
+            }
+            if (order_status.equals("6")) {
+                valueWasher1.setVisibility(View.VISIBLE);
+                valueWasher2.setVisibility(View.VISIBLE);
+                valueWasher1.setText(washer_name_1);
+                valueWasher2.setText(washer_name_2);
+                spinnerWasher1.setVisibility(View.GONE);
+                spinnerWasher2.setVisibility(View.GONE);
+                washingProcess.setVisibility(View.GONE);
+                title_worker3.setVisibility(View.GONE);
+                spinnerWasher3.setVisibility(View.GONE);
+                valueWasher3.setVisibility(View.GONE);
+                washingFinish.setVisibility(View.VISIBLE);
+                lytPayment.setVisibility(View.GONE);
+            }
+            if (order_status.equals("7")) {
+                getWashers("worker");
+                title_worker1.setText(getResources().getString(R.string.select_worker1));
+                title_worker2.setText(getResources().getString(R.string.select_worker2));
+                title_worker3.setText(getResources().getString(R.string.select_worker3));
+                salonProcess.setVisibility(View.VISIBLE);
+                lytPayment.setVisibility(View.GONE);
+                washingProcess.setVisibility(View.GONE);
+                waiter.setText(jsonObject.getString("queue_no_salon"));
+            }
+            if (order_status.equals("8")) {
+                valueWasher1.setVisibility(View.VISIBLE);
+                valueWasher2.setVisibility(View.VISIBLE);
+                valueWasher1.setText(washer_name_1);
+                valueWasher2.setText(washer_name_2);
+                spinnerWasher1.setVisibility(View.GONE);
+                spinnerWasher2.setVisibility(View.GONE);
+                washingProcess.setVisibility(View.GONE);
+                title_worker3.setVisibility(View.GONE);
+                spinnerWasher3.setVisibility(View.GONE);
+                valueWasher3.setVisibility(View.GONE);
+                washingFinish.setVisibility(View.VISIBLE);
+                lytPayment.setVisibility(View.GONE);
+            }
+            if (order_status.equals("9")) {
+                getWashers("worker");
+                valueWasher1.setVisibility(View.VISIBLE);
+                valueWasher2.setVisibility(View.VISIBLE);
+                valueWasher1.setText(washer_name_1);
+                valueWasher2.setText(washer_name_2);
+                spinnerWasher1.setVisibility(View.GONE);
+                spinnerWasher2.setVisibility(View.GONE);
+                spinnerWasher3.setVisibility(View.GONE);
+                title_worker3.setVisibility(View.GONE);
+                washingProcess.setVisibility(View.GONE);
+                valueWasher3.setVisibility(View.GONE);
+                jokProcess.setVisibility(View.VISIBLE);
+                lytPayment.setVisibility(View.GONE);
+                waiter.setText(jsonObject.getString("queue_no_leather"));
+            }
+            if (order_status.equals("3") || order_status.equals("4")) {
+                lytPayment.setVisibility(View.GONE);
+                spinnerLogistic.setVisibility(View.GONE);
+                valueLogistic.setVisibility(View.VISIBLE);
+                valueWasher1.setVisibility(View.VISIBLE);
+                valueWasher2.setVisibility(View.VISIBLE);
+                valueWasher3.setVisibility(View.VISIBLE);
+                valueWasher1.setText(washer_name_1);
+                valueWasher2.setText(washer_name_2);
+                valueWasher3.setText(washer_name_3);
+                washingProcess.setVisibility(View.GONE);
+                spinnerWasher1.setVisibility(View.GONE);
+                spinnerWasher2.setVisibility(View.GONE);
+                spinnerWasher3.setVisibility(View.GONE);
+                if (is_salon) {
+                    lytWorker.setVisibility(View.VISIBLE);
+                    value_worker1.setText(jsonObject.getString("worker_name_1"));
+                    value_worker2.setText(jsonObject.getString("worker_name_2"));
+                    value_worker3.setText(jsonObject.getString("worker_name_3"));
                 }
-                if(order_status.equals("6")) {
-                    valueWasher1.setVisibility(View.VISIBLE);
-                    valueWasher2.setVisibility(View.VISIBLE);
-                    valueWasher1.setText(washer_name_1);
-                    valueWasher2.setText(washer_name_2);
-                    spinnerWasher1.setVisibility(View.GONE);
-                    spinnerWasher2.setVisibility(View.GONE);
-                    washingProcess.setVisibility(View.GONE);
-                    title_worker3.setVisibility(View.GONE);
-                    spinnerWasher3.setVisibility(View.GONE);
-                    valueWasher3.setVisibility(View.GONE);
-                    washingFinish.setVisibility(View.VISIBLE);
-                    lytPayment.setVisibility(View.GONE);
+            }
+            if (order_status.equals("1")) {
+                valueWasher1.setVisibility(View.VISIBLE);
+                valueWasher2.setVisibility(View.VISIBLE);
+                valueWasher1.setText(washer_name_1);
+                valueWasher2.setText(washer_name_2);
+                spinnerWasher1.setVisibility(View.GONE);
+                spinnerWasher2.setVisibility(View.GONE);
+                washingProcess.setVisibility(View.GONE);
+                title_worker3.setVisibility(View.GONE);
+                spinnerWasher3.setVisibility(View.GONE);
+                valueWasher3.setVisibility(View.GONE);
+                if (is_salon) {
+                    lytWorker.setVisibility(View.VISIBLE);
+                    value_worker1.setText(jsonObject.getString("worker_name_1"));
+                    value_worker2.setText(jsonObject.getString("worker_name_2"));
+                    value_worker3.setText(jsonObject.getString("worker_name_3"));
                 }
-                if(order_status.equals("7")) {
-                    getWashers("worker");
-                    title_worker1.setText(getResources().getString(R.string.select_worker1));
-                    title_worker2.setText(getResources().getString(R.string.select_worker2));
-                    title_worker3.setText(getResources().getString(R.string.select_worker3));
-                    salonProcess.setVisibility(View.VISIBLE);
-                    lytPayment.setVisibility(View.GONE);
-                    washingProcess.setVisibility(View.GONE);
-                    waiter.setText(jsonObject.getString("queue_no_salon"));
-                }
-                if(order_status.equals("8")) {
-                    valueWasher1.setVisibility(View.VISIBLE);
-                    valueWasher2.setVisibility(View.VISIBLE);
-                    valueWasher1.setText(washer_name_1);
-                    valueWasher2.setText(washer_name_2);
-                    spinnerWasher1.setVisibility(View.GONE);
-                    spinnerWasher2.setVisibility(View.GONE);
-                    washingProcess.setVisibility(View.GONE);
-                    title_worker3.setVisibility(View.GONE);
-                    spinnerWasher3.setVisibility(View.GONE);
-                    valueWasher3.setVisibility(View.GONE);
-                    washingFinish.setVisibility(View.VISIBLE);
-                    lytPayment.setVisibility(View.GONE);
-                }
-                if(order_status.equals("9")) {
-                    getWashers("worker");
-                    valueWasher1.setVisibility(View.VISIBLE);
-                    valueWasher2.setVisibility(View.VISIBLE);
-                    valueWasher1.setText(washer_name_1);
-                    valueWasher2.setText(washer_name_2);
-                    spinnerWasher1.setVisibility(View.GONE);
-                    spinnerWasher2.setVisibility(View.GONE);
-                    spinnerWasher3.setVisibility(View.GONE);
-                    title_worker3.setVisibility(View.GONE);
-                    washingProcess.setVisibility(View.GONE);
-                    valueWasher3.setVisibility(View.GONE);
-                    jokProcess.setVisibility(View.VISIBLE);
-                    lytPayment.setVisibility(View.GONE);
-                    waiter.setText(jsonObject.getString("queue_no_leather"));
-                }
-                if(order_status.equals("3") || order_status.equals("4")) {
-                    lytPayment.setVisibility(View.GONE);
-                    spinnerLogistic.setVisibility(View.GONE);
-                    valueLogistic.setVisibility(View.VISIBLE);
-                    valueWasher1.setVisibility(View.VISIBLE);
-                    valueWasher2.setVisibility(View.VISIBLE);
-                    valueWasher3.setVisibility(View.VISIBLE);
-                    valueWasher1.setText(washer_name_1);
-                    valueWasher2.setText(washer_name_2);
-                    valueWasher3.setText(washer_name_3);
-                    washingProcess.setVisibility(View.GONE);
-                    spinnerWasher1.setVisibility(View.GONE);
-                    spinnerWasher2.setVisibility(View.GONE);
-                    spinnerWasher3.setVisibility(View.GONE);
-                    if(is_salon) {
-                        lytWorker.setVisibility(View.VISIBLE);
-                        value_worker1.setText(jsonObject.getString("worker_name_1"));
-                        value_worker2.setText(jsonObject.getString("worker_name_2"));
-                        value_worker3.setText(jsonObject.getString("worker_name_3"));
-                    }
-                }
-                if (order_status.equals("1")) {
-                    valueWasher1.setVisibility(View.VISIBLE);
-                    valueWasher2.setVisibility(View.VISIBLE);
-                    valueWasher1.setText(washer_name_1);
-                    valueWasher2.setText(washer_name_2);
-                    spinnerWasher1.setVisibility(View.GONE);
-                    spinnerWasher2.setVisibility(View.GONE);
-                    washingProcess.setVisibility(View.GONE);
-                    title_worker3.setVisibility(View.GONE);
-                    spinnerWasher3.setVisibility(View.GONE);
-                    valueWasher3.setVisibility(View.GONE);
-                    if(is_salon) {
-                        lytWorker.setVisibility(View.VISIBLE);
-                        value_worker1.setText(jsonObject.getString("worker_name_1"));
-                        value_worker2.setText(jsonObject.getString("worker_name_2"));
-                        value_worker3.setText(jsonObject.getString("worker_name_3"));
-                    }
-                }
-                if(queue_no.equals("0")) {
-                    LinearLayout lytWorkerWasher = findViewById(R.id.lyt_worker_washer);
-                    Button printQueue = findViewById(R.id.print_queue);
-                    lytWorkerWasher.setVisibility(View.GONE);
-                    printQueue.setVisibility(View.GONE);
+            }
+            if (queue_no.equals("0")) {
+                LinearLayout lytWorkerWasher = findViewById(R.id.lyt_worker_washer);
+                Button printQueue = findViewById(R.id.print_queue);
+                lytWorkerWasher.setVisibility(View.GONE);
+                printQueue.setVisibility(View.GONE);
+            }
+
+            if (jsonObject.getString("cust_notes").equals("Pembayaran Member")) {
+                LinearLayout lytWorkerWasher = findViewById(R.id.lyt_worker_washer);
+                Button printQueue = findViewById(R.id.print_queue);
+                lytWorkerWasher.setVisibility(View.GONE);
+                printQueue.setVisibility(View.GONE);
+            }
+
+            params_sale_id = jsonObject.getInt("sale_no");
+            params_subtotal = jsonObject.getInt("sub_total");
+            int discount_value = Integer.parseInt(jsonObject.getString("sub_total_discount_value").replace("%", ""));
+            int subtotal_without_discount_shipping = params_subtotal;
+            int subtotal_with_discount_shipping = subtotal_without_discount_shipping + jsonObject.getInt("logistic") - discount_value;
+
+            params_subtotal_after_discount = subtotal_with_discount_shipping;
+
+            billNo.setText(getResources().getString(R.string.bill_no) + " " + jsonObject.getString("sale_no"));
+            type.setText(orderType);
+            customer.setText(jsonObject.getString("customer_name"));
+            if (!jsonObject.getString("cust_notes").isEmpty()) {
+                customer_name.setText(jsonObject.getString("cust_notes"));
+            } else {
+                customer_name.setVisibility(View.GONE);
+            }
+            table.setText(jsonObject.getString("sale_no"));
+            customer.setText(jsonObject.getString("customer_name"));
+            totalOrder.setText(jsonObject.getString("total_items") + " Items");
+            valueLogistic.setText(jsonObject.getString("logistic_name"));
+            //Log.e("ongkir", String.valueOf(jsonObject.getInt("logistic")));
+            shipping.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(jsonObject.getInt("logistic")).replace(',', '.'));
+            subtotal.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(subtotal_without_discount_shipping).replace(',', '.'));
+            subtotalAfterDiscount.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(subtotal_with_discount_shipping).replace(',', '.'));
+            //subtotal.setText(getResources().getString(R.string.currency) +" "+ formatRupiah.format(jsonObject.getInt("sub_total")).replace(',', '.'));
+            //subtotalAfterDiscount.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(jsonObject.getInt("sub_total_with_discount")).replace(',', '.'));
+            discount.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(discount_value).replace(',', '.'));
+            totalDiscount.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(jsonObject.getInt("logistic")).replace(',', '.'));
+            //totalDiscount.setText(getResources().getString(R.string.currency) +" "+ formatRupiah.format(jsonObject.getInt("total_discount_amount")).replace(',', '.'));
+            serviceCharge.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(jsonObject.getInt("delivery_charge")).replace(',', '.'));
+            totalPayable.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(jsonObject.getInt("total_payable")).replace(',', '.'));
+
+            givenAmount.addTextChangedListener(new TextWatcher() {
+                public void afterTextChanged(Editable s) {
                 }
 
-                if(jsonObject.getString("cust_notes").equals("Pembayaran Member")){
-                    LinearLayout lytWorkerWasher = findViewById(R.id.lyt_worker_washer);
-                    Button printQueue = findViewById(R.id.print_queue);
-                    lytWorkerWasher.setVisibility(View.GONE);
-                    printQueue.setVisibility(View.GONE);
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 }
 
-                params_sale_id = jsonObject.getInt("sale_no");
-                params_subtotal = jsonObject.getInt("sub_total");
-                int discount_value = Integer.parseInt(jsonObject.getString("sub_total_discount_value").replace("%", ""));
-                int subtotal_without_discount_shipping = params_subtotal;
-                int subtotal_with_discount_shipping = subtotal_without_discount_shipping + jsonObject.getInt("logistic") - discount_value;
-
-                params_subtotal_after_discount = subtotal_with_discount_shipping;
-
-                billNo.setText(getResources().getString(R.string.bill_no) + " " + jsonObject.getString("sale_no"));
-                type.setText(orderType);
-                customer.setText(jsonObject.getString("customer_name"));
-                if(!jsonObject.getString("cust_notes").isEmpty()) {
-                    customer_name.setText(jsonObject.getString("cust_notes"));
-                } else {
-                    customer_name.setVisibility(View.GONE);
-                }
-                table.setText(jsonObject.getString("sale_no"));
-                customer.setText(jsonObject.getString("customer_name"));
-                totalOrder.setText(jsonObject.getString("total_items") + " Items");
-                valueLogistic.setText(jsonObject.getString("logistic_name"));
-                //Log.e("ongkir", String.valueOf(jsonObject.getInt("logistic")));
-                shipping.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(jsonObject.getInt("logistic")).replace(',', '.'));
-                subtotal.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(subtotal_without_discount_shipping).replace(',', '.'));
-                subtotalAfterDiscount.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(subtotal_with_discount_shipping).replace(',', '.'));
-                //subtotal.setText(getResources().getString(R.string.currency) +" "+ formatRupiah.format(jsonObject.getInt("sub_total")).replace(',', '.'));
-                //subtotalAfterDiscount.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(jsonObject.getInt("sub_total_with_discount")).replace(',', '.'));
-                discount.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(discount_value).replace(',', '.'));
-                totalDiscount.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(jsonObject.getInt("logistic")).replace(',', '.'));
-                //totalDiscount.setText(getResources().getString(R.string.currency) +" "+ formatRupiah.format(jsonObject.getInt("total_discount_amount")).replace(',', '.'));
-                serviceCharge.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(jsonObject.getInt("delivery_charge")).replace(',', '.'));
-                totalPayable.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(jsonObject.getInt("total_payable")).replace(',', '.'));
-
-                givenAmount.addTextChangedListener(new TextWatcher() {
-                    public void afterTextChanged(Editable s) {
-                    }
-
-                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                    }
-
-                    public void onTextChanged(CharSequence s, int start, int before, int count) {
-                        if (!s.toString().isEmpty()) {
-                            int value_change_amount;
-                            try {
-                                value_change_amount = Integer.parseInt(s.toString()) - jsonObject.getInt("total_payable");
-                                params_change_amount = value_change_amount;
-                                changeAmount.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(value_change_amount).replace(',', '.'));
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    if (!s.toString().isEmpty()) {
+                        int value_change_amount;
+                        try {
+                            value_change_amount = Integer.parseInt(s.toString()) - jsonObject.getInt("total_payable");
+                            params_change_amount = value_change_amount;
+                            changeAmount.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(value_change_amount).replace(',', '.'));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
                     }
-                });
-
-                String valver = "";
-                String duration = "";
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject jo = jsonArray.getJSONObject(i);
-                    @SuppressLint("InflateParams") View tableRow = LayoutInflater.from(getApplicationContext()).inflate(R.layout.table_order, null, false);
-                    TextView history_display_no = tableRow.findViewById(R.id.menu_name);
-                    TextView history_display_date = tableRow.findViewById(R.id.menu_price);
-                    TextView history_display_orderid = tableRow.findViewById(R.id.menu_qty);
-                    TextView history_display_quantity = tableRow.findViewById(R.id.menu_total);
-
-                    String menu_name = jo.getString("menu_name");
-                    int menu_price = jo.getInt("menu_unit_price");
-                    int menu_qty = jo.getInt("qty");
-                    int menu_total = menu_price * menu_qty;
-
-                    valver =  jo.getString("menu_category");
-                    duration = jo.getString("package_duration");
-
-                    String title_new = menu_name.toLowerCase();
-                    String capitalize = capitalizeText(title_new);
-                    history_display_no.setText(capitalize);
-                    history_display_date.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(menu_price).replace(',', '.'));
-                    history_display_orderid.setText(String.valueOf(menu_qty));
-                    history_display_quantity.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(menu_total).replace(',', '.'));
-                    tableLayout.addView(tableRow);
                 }
-                if(jsonObject.getString("cust_notes").equals("Pembayaran Member")) {
-                    LinearLayout lyt_member = findViewById(R.id.lyt_member);
-                    lyt_member.setVisibility(View.VISIBLE);
-                    getDateMember(jsonObject.getString("sale_date"), duration);
-                    jsonObject.getString("customer_name");
-                    getMemberByCustomer(jsonObject.getString("customer_name"));
-                    Button update_order = findViewById(R.id.update_order);
-                    update_order.setVisibility(View.GONE);
-                }
+            });
 
-                if (order_status.equals("1")) {
-                    getPPN();
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
+            String valver = "";
+            String duration = "";
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jo = jsonArray.getJSONObject(i);
+                @SuppressLint("InflateParams") View tableRow = LayoutInflater.from(getApplicationContext()).inflate(R.layout.table_order, null, false);
+                TextView history_display_no = tableRow.findViewById(R.id.menu_name);
+                TextView history_display_date = tableRow.findViewById(R.id.menu_price);
+                TextView history_display_orderid = tableRow.findViewById(R.id.menu_qty);
+                TextView history_display_quantity = tableRow.findViewById(R.id.menu_total);
+
+                String menu_name = jo.getString("menu_name");
+                int menu_price = jo.getInt("menu_unit_price");
+                int menu_qty = jo.getInt("qty");
+                int menu_total = menu_price * menu_qty;
+
+                valver = jo.getString("menu_category");
+                duration = jo.getString("package_duration");
+
+                String title_new = menu_name.toLowerCase();
+                String capitalize = capitalizeText(title_new);
+                history_display_no.setText(capitalize);
+                history_display_date.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(menu_price).replace(',', '.'));
+                history_display_orderid.setText(String.valueOf(menu_qty));
+                history_display_quantity.setText(getResources().getString(R.string.currency) + " " + formatRupiah.format(menu_total).replace(',', '.'));
+                tableLayout.addView(tableRow);
             }
+            if (jsonObject.getString("cust_notes").equals("Pembayaran Member")) {
+                LinearLayout lyt_member = findViewById(R.id.lyt_member);
+                lyt_member.setVisibility(View.VISIBLE);
+                getDateMember(jsonObject.getString("sale_date"), duration);
+                jsonObject.getString("customer_name");
+                getMemberByCustomer(jsonObject.getString("customer_name"));
+                Button update_order = findViewById(R.id.update_order);
+                update_order.setVisibility(View.GONE);
+            }
+
+            if (order_status.equals("1")) {
+                getPPN();
+            }
+        }catch (JSONException e){
+            Log.e("RESPONSE ERROR DETAILS", e.toString());
         }
-        , error -> {
-        });
-        requestQueue= Volley.newRequestQueue(this);
-        requestQueue.add(stringRequest);
     }
 
     private void getDateMember(String sale_date, String duration)
@@ -534,47 +559,23 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
 //    }
 
     private void getWashers(String type) {
-        Log.e("URL_", URI.API_WASHERS+sessionManager.getId()+"/"+type);
-        JsonArrayRequest request = new JsonArrayRequest(URI.API_WASHERS+sessionManager.getId()+"/"+type, response -> {
-            JSONObject jsonObject;
-            //Log.e("Response", response.toString());
-            for (int i = 0; i < response.length(); i++) {
-                try {
-                    jsonObject = response.getJSONObject(i);
-                    washerList.add(jsonObject.getString("full_name"));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-            spinnerWasher1.setAdapter(new ArrayAdapter<>(getApplicationContext(), R.layout.logistic_item, washerList));
-            spinnerWasher2.setAdapter(new ArrayAdapter<>(getApplicationContext(), R.layout.logistic_item, washerList));
-            spinnerWasher3.setAdapter(new ArrayAdapter<>(getApplicationContext(), R.layout.logistic_item, washerList));
-            //Log.e("Payment ", String.valueOf(paymentMethodList.get(0).getName()));
-        }, error -> {
-        });
-        requestQueue = Volley.newRequestQueue(this);
-        requestQueue.add(request);
+        List<Washer> washersList = db.getAllWasher(type);
+        washerList.add("Pilih");
+        for(int i=0; i < washersList.size(); i++){
+            washerList.add(washersList.get(i).getName());
+        }
+        spinnerWasher1.setAdapter(new ArrayAdapter<>(getApplicationContext(), R.layout.logistic_item, washerList));
+        spinnerWasher2.setAdapter(new ArrayAdapter<>(getApplicationContext(), R.layout.logistic_item, washerList));
+        spinnerWasher3.setAdapter(new ArrayAdapter<>(getApplicationContext(), R.layout.logistic_item, washerList));
     }
 
     private void getEmployees() {
         Log.e("URL_", URI.API_EMPLOYEES);
-        JsonArrayRequest request = new JsonArrayRequest(URI.API_EMPLOYEES, response -> {
-            JSONObject jsonObject;
-            //Log.e("Response", response.toString());
-            for (int i = 0; i < response.length(); i++) {
-                try {
-                    jsonObject = response.getJSONObject(i);
-                    employeeList.add(jsonObject.getString("full_name"));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-            spinnerEmployee.setAdapter(new ArrayAdapter<>(getApplicationContext(), R.layout.logistic_item, employeeList));
-            //Log.e("Payment ", String.valueOf(paymentMethodList.get(0).getName()));
-        }, error -> {
-        });
-        requestQueue = Volley.newRequestQueue(this);
-        requestQueue.add(request);
+        List<Employee> employeesList = db.getAllEmployee();
+        for(int i=0; i<employeesList.size(); i++){
+            employeeList.add(employeesList.get(i).getName());
+        }
+        spinnerEmployee.setAdapter(new ArrayAdapter<>(getApplicationContext(), R.layout.logistic_item, employeeList));
     }
 
     private void getPaymentMethods() {
@@ -714,26 +715,13 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
                 showLoading();
                 StringRequest postRequest = new StringRequest(Request.Method.POST, URI.API_FINISH_ORDER,
                         response -> {
-                            Log.e("RESPONSE ", response);
+                            Log.e("HIT FINISH ORDER", "Yes");
                             try {
                                 hideLoading();
                                 JSONObject jsonObject = new JSONObject(response);
                                 boolean success = jsonObject.getBoolean("success");
                                 if(success) {
-                                    //Log.e("Enable", sessionManager.getEnablePrinter());
-                                    if(sessionManager.getEnablePrinter().equals("on")) {
-                                        printText(jsonObject.getString("header_invoice"), jsonObject.getString("invoice"));
-                                    }
-                                    if(!member_id.isEmpty())
-                                    {
-                                        updateMember(jsonObject.getString("sales_information"));
-                                        return;
-                                    }
-                                    db.updateNote(Integer.parseInt(order_id), jsonObject.getString("sales_information"));
-                                    //db.deleteSales(Integer.parseInt(order_id));
-                                    Intent intent = new Intent(getApplicationContext(), OrderHistoryActivity.class);
-                                    startActivity(intent);
-                                    finish();
+                                    getInformation(Integer.valueOf(order_id), 1, jsonObject);
                                 } else {
                                     showError(jsonObject.getString("message"));
                                 }
@@ -758,9 +746,6 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
                     protected Map<String, String> getParams()
                     {
                         Map<String, String> params = new HashMap<>();
-                        // the POST parameters:
-                        // String logistic_value = spinnerLogistic.getSelectedItem().toString();
-                        // params.put("logistic", logistic_value);
                         if(is_piutang) {
                             String employee = spinnerEmployee.getSelectedItem().toString();
                             params.put("employee", employee);
@@ -797,21 +782,13 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
         showLoading();
         StringRequest postRequest = new StringRequest(Request.Method.POST, URI.API_FINISH_ORDER,
                 response -> {
-                    Log.e("RESPONSE ", response);
+                    Log.e("HIT FINISH ORDER VVIP", "Yes");
                     try {
                         hideLoading();
                         JSONObject jsonObject = new JSONObject(response);
                         boolean success = jsonObject.getBoolean("success");
                         if(success) {
-                            //Log.e("Enable", sessionManager.getEnablePrinter());
-                            if(sessionManager.getEnablePrinter().equals("on")) {
-                                printText(jsonObject.getString("header_invoice"), jsonObject.getString("invoice"));
-                            }
-                            db.updateNote(Integer.parseInt(order_id), jsonObject.getString("sales_information"));
-                            //db.deleteSales(Integer.parseInt(order_id));
-                            Intent intent = new Intent(getApplicationContext(), OrderHistoryActivity.class);
-                            startActivity(intent);
-                            finish();
+                            getInformation(Integer.valueOf(order_id), 1, jsonObject);
                         } else {
                             showError(jsonObject.getString("message"));
                         }
@@ -852,129 +829,31 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
     }
 
     public void invoiceDirect(View view) {
-        //Log.e("sale_id", String.valueOf(params_sale_id));
-        //Log.e("close_order", "true");
-        //Log.e("paid_amount", String.valueOf(params_total_payable));
-        //Log.e("due_amount", "0");
-        //Log.e("given_amount", String.valueOf(params_given_amount));
-        //Log.e("change_amount", String.valueOf(params_change_amount));
-        //Log.e("payment_method_type", String.valueOf(params_payment_method_type));
-
         showLoading();
-        StringRequest postRequest = new StringRequest(Request.Method.POST, URI.API_INVOICE,
-                response -> {
-                    //Log.e("RESPONSE ", response);
-                    try {
-                        hideLoading();
-                        JSONObject jsonObject = new JSONObject(response);
-                        boolean success = jsonObject.getBoolean("success");
-                        if(success) {
-                            if(sessionManager.getEnablePrinter().equals("on")) {
-                                printText(jsonObject.getString("header_invoice"), jsonObject.getString("invoice"));
-                            }
-                        } else {
-                            showError(jsonObject.getString("message"));
-                        }
+        List<Order> orderDetail = db.getOrderBySale(Integer.parseInt(order_id));
+        try {
+            hideLoading();
+            JSONObject jsonObject = new JSONObject(orderDetail.get(0).getOrder_details());
+            printText(jsonObject.getString("header_invoice"), jsonObject.getString("invoice"));
 
-                    } catch (JSONException e) {
-                        showError("Terjadi kesalahan server");
-                    }
-                },
-                error -> {
-                    error.printStackTrace();
-                    hideLoading();
-
-                    NetworkResponse networkResponse = error.networkResponse;
-                    if (networkResponse != null && networkResponse.data != null) {
-                        String jsonError = new String(networkResponse.data);
-                        //Print Error!
-                        Log.e("Error", jsonError);
-                    }
-                }
-        ) {
-            @Override
-            protected Map<String, String> getParams()
-            {
-                Map<String, String> params = new HashMap<>();
-                // the POST parameters:
-                params.put("user_id", sessionManager.getId());
-                params.put("sale_id", String.valueOf(params_sale_id));
-                params.put("close_order", "true");
-                params.put("paid_amount", String.valueOf(params_total_payable));
-                params.put("due_amount", "0");
-                params.put("paid_cash", String.valueOf(params_given_amount));
-                params.put("paid_non_cash", String.valueOf(transferAmount.getText()));
-                params.put("given_amount", String.valueOf(params_given_amount));
-                params.put("change_amount", String.valueOf(params_change_amount));
-                params.put("payment_method_type", String.valueOf(params_payment_method_type));
-                params.put("notes", String.valueOf(notes.getText()));
-                return params;
-            }
-        };
-        postRequest.setRetryPolicy(new DefaultRetryPolicy(
-                0,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-        Volley.newRequestQueue(getApplicationContext()).add(postRequest);
+        } catch (JSONException e) {
+            showError("Terjadi kesalahan server");
+        }
     }
 
     public void printQueue(View view) {
         showLoading();
-        StringRequest postRequest = new StringRequest(Request.Method.POST, URI.API_QUEUE,
-                response -> {
-                    //Log.e("RESPONSE ", response);
-                    try {
-                        hideLoading();
-                        JSONObject jsonObject = new JSONObject(response);
-                        boolean success = jsonObject.getBoolean("success");
-                        if(success) {
-                            if(sessionManager.getEnablePrinter().equals("on")) {
-                                printText(jsonObject.getString("header_invoice"), jsonObject.getString("invoice"));
-                            }
-                        } else {
-                            showError(jsonObject.getString("message"));
-                        }
+        List<Order> orderDetail = db.getOrderBySale(Integer.parseInt(order_id));
+        try {
+            hideLoading();
+            JSONObject jsonObject = new JSONObject(orderDetail.get(0).getOrder_details());
+            List<id.latenight.creativepos.adapter.sampler.CustomerInfo> customerInfos = db.getCustomerInfo(jsonObject.getString("customer_name"));
+            printText(jsonObject.getString("header_invoice"), jsonObject.getString("quenie_invoice"));
 
-                    } catch (JSONException e) {
-                        showError("Terjadi kesalahan server");
-                    }
-                },
-                error -> {
-                    error.printStackTrace();
-                    hideLoading();
-
-                    NetworkResponse networkResponse = error.networkResponse;
-                    if (networkResponse != null && networkResponse.data != null) {
-                        String jsonError = new String(networkResponse.data);
-                        //Print Error!
-                        Log.e("Error", jsonError);
-                    }
-                }
-        ) {
-            @Override
-            protected Map<String, String> getParams()
-            {
-                Map<String, String> params = new HashMap<>();
-                // the POST parameters:
-                params.put("user_id", sessionManager.getId());
-                params.put("sale_id", String.valueOf(params_sale_id));
-                params.put("close_order", "true");
-                params.put("paid_amount", String.valueOf(params_total_payable));
-                params.put("due_amount", "0");
-                params.put("paid_cash", String.valueOf(params_given_amount));
-                params.put("paid_non_cash", String.valueOf(transferAmount.getText()));
-                params.put("given_amount", String.valueOf(params_given_amount));
-                params.put("change_amount", String.valueOf(params_change_amount));
-                params.put("payment_method_type", String.valueOf(params_payment_method_type));
-                params.put("notes", String.valueOf(notes.getText()));
-                return params;
-            }
-        };
-        postRequest.setRetryPolicy(new DefaultRetryPolicy(
-                0,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-        Volley.newRequestQueue(getApplicationContext()).add(postRequest);
+        } catch (JSONException e) {
+            Log.e("ERROR", e.toString());
+            showError("Terjadi kesalahan server");
+        }
     }
 
     public void washingSalonProcess(int type_service) {
@@ -987,15 +866,13 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
         showLoading();
         StringRequest postRequest = new StringRequest(Request.Method.POST, API_WASHING_SALON,
                 response -> {
-                    Log.e("RESPONSE ", response);
+                    Log.e("HIT WASHING FINISH", "Yes");
                     try {
                         hideLoading();
                         JSONObject jsonObject = new JSONObject(response);
                         boolean success = jsonObject.getBoolean("success");
                         if(success) {
-                            showSuccess(jsonObject.getString("message"));
-                            finish();
-                            startActivity(getIntent());
+                            getInformation(Integer.valueOf(order_id), 2, jsonObject);
                         } else {
                             showError(jsonObject.getString("message"));
                         }
@@ -1044,15 +921,13 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
         showLoading();
         StringRequest postRequest = new StringRequest(Request.Method.POST, URI.API_WASHING_FINISH,
                 response -> {
-                    Log.e("RESPONSE ", response);
+                    Log.e("HIT GET WASHING PROSESS", "Yes");
                     try {
                         hideLoading();
                         JSONObject jsonObject = new JSONObject(response);
                         boolean success = jsonObject.getBoolean("success");
                         if(success) {
-                            showSuccess(jsonObject.getString("message"));
-                            finish();
-                            startActivity(getIntent());
+                            getInformation(Integer.valueOf(order_id), 2, jsonObject);
                         } else {
                             showError(jsonObject.getString("message"));
                         }
@@ -1092,75 +967,73 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
 
     @SuppressLint("SetTextI18n")
     private void getPPN() {
-        //Log.e("URL_", URI.API_PPN);
-        stringRequest = new StringRequest(URI.API_PPN, response -> {
+        List<PPN> ppnList = db.getPPN();
+        int percentage = 0;
+        try {
+            percentage = ppnList.get(0).getPercentage();
+        }catch (Exception e){
 
-            float value_ppn = ((params_subtotal_after_discount * Float.parseFloat(response)) / 100);
-            //Log.e("PPN", String.valueOf(value_ppn));
-            int payable_after_ppn = (int) (params_subtotal_after_discount + value_ppn);
+        }
+        float value_ppn = ((params_subtotal_after_discount * Float.parseFloat(String.valueOf(percentage))) / 100);
+        int payable_after_ppn = (int) (params_subtotal_after_discount + value_ppn);
 
+        String s_payable_after_ppn = formatRupiah.format(payable_after_ppn).replace(',', '.');
+        String s_value_ppn = formatRupiah.format(value_ppn).replace(',', '.');
 
-            String s_payable_after_ppn = formatRupiah.format(payable_after_ppn).replace(',', '.');
-            String s_value_ppn = formatRupiah.format(value_ppn).replace(',', '.');
-
-            givenAmount.addTextChangedListener(new TextWatcher() {
-                public void afterTextChanged(Editable s) {}
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    int value_change_amount;
-                    if(!s.toString().isEmpty()) {
-                        params_given_amount = Integer.parseInt(s.toString());
-                        if(transferAmount.getText().toString().equals("0") || transferAmount.getText().toString().isEmpty()) {
-                            value_change_amount = Integer.parseInt(s.toString()) - payable_after_ppn;
-                        } else {
-                            value_change_amount = Integer.parseInt(s.toString()) + Integer.parseInt(transferAmount.getText().toString()) - payable_after_ppn;
-                        }
+        givenAmount.addTextChangedListener(new TextWatcher() {
+            public void afterTextChanged(Editable s) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                int value_change_amount;
+                if(!s.toString().isEmpty()) {
+                    params_given_amount = Integer.parseInt(s.toString());
+                    if(transferAmount.getText().toString().equals("0") || transferAmount.getText().toString().isEmpty()) {
+                        value_change_amount = Integer.parseInt(s.toString()) - payable_after_ppn;
                     } else {
-                        params_given_amount = 0;
-                        if(transferAmount.getText().toString().trim().length() > 0) {
-                            value_change_amount = Integer.parseInt(transferAmount.getText().toString()) - payable_after_ppn;
-                        } else {
-                            value_change_amount = 0;
-                        }
+                        value_change_amount = Integer.parseInt(s.toString()) + Integer.parseInt(transferAmount.getText().toString()) - payable_after_ppn;
                     }
-                    changeAmount.setText(getResources().getString(R.string.currency) +" "+ formatRupiah.format(value_change_amount).replace(',', '.'));
-                    params_change_amount = value_change_amount;
-                }
-            });
-
-            transferAmount.addTextChangedListener(new TextWatcher() {
-                public void afterTextChanged(Editable s) {}
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    int value_change_amount;
-                    if(!s.toString().isEmpty()) {
-                        params_transfer_amount = Integer.parseInt(s.toString());
-                        if(givenAmount.getText().toString().equals("0") || givenAmount.getText().toString().isEmpty()) {
-                            value_change_amount = Integer.parseInt(s.toString()) - payable_after_ppn;
-                        } else {
-                            value_change_amount = Integer.parseInt(s.toString()) + Integer.parseInt(givenAmount.getText().toString()) - payable_after_ppn;
-                        }
+                } else {
+                    params_given_amount = 0;
+                    if(transferAmount.getText().toString().trim().length() > 0) {
+                        value_change_amount = Integer.parseInt(transferAmount.getText().toString()) - payable_after_ppn;
                     } else {
-                        params_transfer_amount = 0;
-                        if(givenAmount.getText().toString().trim().length() > 0) {
-                            value_change_amount = Integer.parseInt(givenAmount.getText().toString()) - payable_after_ppn;
-                        } else {
-                            value_change_amount = 0;
-                        }
+                        value_change_amount = 0;
                     }
-                    changeAmount.setText(getResources().getString(R.string.currency) +" "+ formatRupiah.format(value_change_amount).replace(',', '.'));
-                    params_change_amount = value_change_amount;
                 }
-            });
-
-            params_total_payable = payable_after_ppn;
-            ppn.setText(getResources().getString(R.string.currency) +" "+ s_value_ppn);
-            ppnPercent.setText((int) value_ppn +"%");
-            totalPayable.setText(getResources().getString(R.string.currency) +" "+ s_payable_after_ppn);
-        }, error -> {
+                changeAmount.setText(getResources().getString(R.string.currency) +" "+ formatRupiah.format(value_change_amount).replace(',', '.'));
+                params_change_amount = value_change_amount;
+            }
         });
-        requestQueue = Volley.newRequestQueue(this);
-        requestQueue.add(stringRequest);
+
+        transferAmount.addTextChangedListener(new TextWatcher() {
+            public void afterTextChanged(Editable s) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                int value_change_amount;
+                if(!s.toString().isEmpty()) {
+                    params_transfer_amount = Integer.parseInt(s.toString());
+                    if(givenAmount.getText().toString().equals("0") || givenAmount.getText().toString().isEmpty()) {
+                        value_change_amount = Integer.parseInt(s.toString()) - payable_after_ppn;
+                    } else {
+                        value_change_amount = Integer.parseInt(s.toString()) + Integer.parseInt(givenAmount.getText().toString()) - payable_after_ppn;
+                    }
+                } else {
+                    params_transfer_amount = 0;
+                    if(givenAmount.getText().toString().trim().length() > 0) {
+                        value_change_amount = Integer.parseInt(givenAmount.getText().toString()) - payable_after_ppn;
+                    } else {
+                        value_change_amount = 0;
+                    }
+                }
+                changeAmount.setText(getResources().getString(R.string.currency) +" "+ formatRupiah.format(value_change_amount).replace(',', '.'));
+                params_change_amount = value_change_amount;
+            }
+        });
+
+        params_total_payable = payable_after_ppn;
+        ppn.setText(getResources().getString(R.string.currency) +" "+ s_value_ppn);
+        ppnPercent.setText((int) value_ppn +"%");
+        totalPayable.setText(getResources().getString(R.string.currency) +" "+ s_payable_after_ppn);
     }
 
     public void showLoading() {
@@ -1237,7 +1110,6 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
                 response -> {
                     hideLoading();
                     db.updateNote(Integer.parseInt(order_id), sales_information);
-                    //db.deleteSales(Integer.parseInt(order_id));
                     Intent intent = new Intent(getApplicationContext(), OrderHistoryActivity.class);
                     startActivity(intent);
                     finish();
@@ -1269,6 +1141,73 @@ public class OrderDetailActivity extends AppCompatActivity implements PaymentMet
             }
         };
         Volley.newRequestQueue(this).add(postRequest);
+    }
+
+    public void getInformation(int id, int status, JSONObject jsonObject){
+        StringRequest stringRequest = new StringRequest(URI.DOWNLOAD_ORDER_DETAIL+"/"+id, response -> {
+            try {
+                Log.e("HIT GET INFORMATION", "Yes");
+                JSONObject res = new JSONObject(response);
+                db.deleteOrder(res.getInt("sale_no"));
+                db.addOrders(res.getString("sale_no"), res.getInt("sale_no"), res.getInt("order_status"), res.toString(), res.getString("sale_date"));
+                if(status == 1){
+                    getCustomerInfo(res.getInt("customer_id"), status, jsonObject, res);
+                }else if(status == 2){
+                    showSuccess(jsonObject.getString("message"));
+                    finish();
+                    startActivity(getIntent());
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }, error -> {
+        });
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        stringRequest.setRetryPolicy(
+                new DefaultRetryPolicy(
+                        30000,
+                        1,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+                )
+        );
+        requestQueue.add(stringRequest);
+    }
+
+    public void getCustomerInfo(int customer_id, int status, JSONObject jsonObject, JSONObject resp){
+        StringRequest stringRequest = new StringRequest(URI.UPDATE_CUSTOMER_INFO+"/"+customer_id, response -> {
+            try {
+                Log.e("HIT GET CUSTOMER INFO", "Yes");
+                JSONObject res = new JSONObject(response);
+                db.deleteCustomerInfo(res.getInt("id"));
+                db.addCustomerInfo(res.getInt("id"), res.getString("name"), res.toString());
+                if(status == 1){
+                    if(sessionManager.getEnablePrinter().equals("on")) {
+                        printText(resp.getString("header_invoice"), resp.getString("invoice"));
+                    }
+                    if(!member_id.isEmpty())
+                    {
+                        updateMember(res.toString());
+                        return;
+                    }
+                    db.updateNote(Integer.parseInt(order_id), jsonObject.getString("sales_information"));
+                    Intent intent = new Intent(getApplicationContext(), OrderHistoryActivity.class);
+                    startActivity(intent);
+                    finish();
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }, error -> {
+        });
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        stringRequest.setRetryPolicy(
+                new DefaultRetryPolicy(
+                        30000,
+                        1,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+                )
+        );
+        requestQueue.add(stringRequest);
     }
 
     @Override

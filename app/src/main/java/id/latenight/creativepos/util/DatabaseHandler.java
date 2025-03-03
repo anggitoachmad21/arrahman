@@ -1,21 +1,40 @@
 package id.latenight.creativepos.util;
 
+import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.os.Environment;
+import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import id.latenight.creativepos.adapter.sampler.Categories;
+import id.latenight.creativepos.adapter.sampler.CustomerInfo;
 import id.latenight.creativepos.adapter.sampler.CustomerValues;
+import id.latenight.creativepos.adapter.sampler.Employee;
 import id.latenight.creativepos.adapter.sampler.Labels;
 import id.latenight.creativepos.adapter.sampler.Menus;
+import id.latenight.creativepos.adapter.sampler.Order;
+import id.latenight.creativepos.adapter.sampler.PPN;
 import id.latenight.creativepos.adapter.sampler.PaymentMethod;
 import id.latenight.creativepos.adapter.sampler.SubCategories;
 import id.latenight.creativepos.adapter.sampler.Tables;
+import id.latenight.creativepos.adapter.sampler.Washer;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
 
@@ -23,7 +42,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
 
     // Database name
-    private static final String DATABASE_NAME = "Carwash-v2";
+    private static final String DATABASE_NAME = "Carwash-v5";
 
     // table name
     private static final String TABLE_TALL = "sales";
@@ -36,6 +55,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String TABLE_MENUS= "menus";
     private static final String TABLE_TABLES= "tables";
     private static final String TABLE_PAYMENT_METHOD= "payment_method";
+    private static final String TABLE_ORDERS= "orders";
+    private static final String TABLE_CUSTOMER_INFO= "customer_info";
+    private static final String TABLE_WASHER= "washer";
+    private static final String TABLE_EMPLOYEE= "employee";
+    private static final String TABLE_PPN= "ppn";
 
     // FORM CATEGORIES
     private static final String KEY_NAME = "name";
@@ -64,6 +88,26 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_DESCRIPTION = "description";
 
     private static final String KEY_LIVE = "del";
+
+    // orders
+    private static final String KEY_ORDER_ID = "order_id";
+    private static final String KEY_ORDER_NO = "order_no";
+    private static final String KEY_ORDER_DETAILS = "order_details";
+    private static final String KEY_STATUS = "order_status";
+
+    private static final String KEY_ORDER_DATE = "order_date";
+    private static final String KEY_CUSTOMER_DETAILS = "customer_details";
+
+    // employee
+    private static final String KEY_EMPLOYEE_DETAIL = "employee_detail";
+    private static final String KEY_TYPE = "type";
+    private static final String KEY_EMPLOYEE_ID = "employee_id";
+    private static final String KEY_WASHER_ID = "washer_id";
+    private static final String KEY_PERCENTAGE = "percentage";
+
+    private static final Date d = Calendar.getInstance().getTime();
+    @SuppressLint("SimpleDateFormat")
+    private static  SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
     public DatabaseHandler(Context context){
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -134,6 +178,41 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 + KEY_DESCRIPTION+ " VARCHAR, "
                 + KEY_PAYMENT_METHOD + " INTEGER " + ")";
         db.execSQL(CREATE_TABLE_PAYMENT_METHOD);
+
+        String CREATE_TABLE_ORDER = "CREATE TABLE " + TABLE_ORDERS + "("
+                + KEY_ID + " INTEGER PRIMARY KEY,"
+                + KEY_ORDER_NO + " VARCHAR, "
+                + KEY_ORDER_ID + " INTEGER, "
+                + KEY_STATUS+ " INTEGER, "
+                + KEY_ORDER_DATE+ " DATETIME, "
+                + KEY_ORDER_DETAILS + " LONGTEXT " + ")";
+        db.execSQL(CREATE_TABLE_ORDER);
+
+        String CREATE_TABLE_CUSTOMER_INFO = "CREATE TABLE " + TABLE_CUSTOMER_INFO + "("
+                + KEY_ID + " INTEGER PRIMARY KEY,"
+                + KEY_NAME + " VARCHAR, "
+                + KEY_USER_ID + " INTEGER, "
+                + KEY_CUSTOMER_DETAILS + " LONGTEXT " + ")";
+        db.execSQL(CREATE_TABLE_CUSTOMER_INFO);
+
+        String CREATE_TABLE_WASHER = "CREATE TABLE " + TABLE_WASHER + "("
+                + KEY_ID + " INTEGER PRIMARY KEY,"
+                + KEY_NAME + " VARCHAR, "
+                + KEY_TYPE + " VARCHAR, "
+                + KEY_WASHER_ID + " INTEGER " + ")";
+        db.execSQL(CREATE_TABLE_WASHER);
+
+        String CREATE_TABLE_EMPLOYEE = "CREATE TABLE " + TABLE_EMPLOYEE + "("
+                + KEY_ID + " INTEGER PRIMARY KEY,"
+                + KEY_NAME + " VARCHAR, "
+                + KEY_EMPLOYEE_ID + " INTEGER, "
+                + KEY_EMPLOYEE_DETAIL + " LONGTEXT " + ")";
+        db.execSQL(CREATE_TABLE_EMPLOYEE);
+
+        String CREATE_TABLE_PPN = "CREATE TABLE " + TABLE_PPN + "("
+                + KEY_ID + " INTEGER PRIMARY KEY,"
+                + KEY_PERCENTAGE + " INTEGER "+ ")";
+        db.execSQL(CREATE_TABLE_PPN);
     }
 
     // on Upgrade database
@@ -145,6 +224,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_LABELS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_TABLES);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_PAYMENT_METHOD);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_ORDERS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CUSTOMER_INFO);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_WASHER);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_EMPLOYEE);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_PPN);
         onCreate(db);
     }
 
@@ -469,9 +553,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         if(!keyword.isEmpty()){
             values = " WHERE "+ KEY_NAME + " LIKE '%"+ keyword + "%'";
         }
+        String orderBy = " GROUP BY " + KEY_NAME + " ORDER BY " + KEY_ID + " DESC ";
         String limit = " LIMIT " + size;
 
-        String query = selectQuery+values+limit;
+        String query = selectQuery+values+orderBy+limit;
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor c = db.rawQuery(query, null);
 
@@ -563,9 +648,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             labels = " AND "+ LABEL_ID + " = " + label_id;
         }
         if(page!=0){
-            offset = (page * size) - page;
+            offset = (page * size) - size;
         }
-        String limit = " LIMIT " + size + " OFFSET " + offset;
+        String limit = "";
+        if(keyword.isEmpty()){
+            limit = " LIMIT " + size + " OFFSET " + offset;
+        }
 
         String query = selectQuery+keywords+categoriess+subcategories+labels+limit;
         SQLiteDatabase db = this.getReadableDatabase();
@@ -584,9 +672,44 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         (c.getInt(c.getColumnIndex(KEY_RESELLER_PRICE))),
                         (c.getInt(c.getColumnIndex(KEY_PARTNER_PRICE))),
                         (c.getInt(c.getColumnIndex(KEY_INGREDIENT_STOCK))),
-                        (c.getInt(c.getColumnIndex(KEY_MENU_ID)))
+                        (c.getInt(c.getColumnIndex(KEY_MENU_ID))),
+                        (c.getInt(c.getColumnIndex(CATEGORIES_ID))),
+                        (c.getInt(c.getColumnIndex(KEY_SUB_CATEGORIES_ID))),
+                        (c.getInt(c.getColumnIndex(LABEL_ID)))
                 );
                 // adding to product list
+                carts.add(cart);
+            } while (c.moveToNext());
+        }
+
+        return carts;
+    }
+
+    public List<Menus> getAllMenuById(int id) {
+        List<Menus> carts = new ArrayList<Menus>();
+        String selectQuery = "SELECT * FROM " + TABLE_MENUS + " WHERE " + KEY_MENU_ID + " = " + id;
+
+        String query = selectQuery;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(query, null);
+
+        if (c.moveToFirst()) {
+            do {
+                Menus cart = new Menus(
+                        c.getInt(c.getColumnIndex(KEY_ID)),
+                        (c.getString(c.getColumnIndex(KEY_NAME))),
+                        (c.getString(c.getColumnIndex(KEY_PHOTO))),
+                        (c.getInt(c.getColumnIndex(KEY_SALE_PRICE))),
+                        (c.getInt(c.getColumnIndex(KEY_ONLINE_PRICE))),
+                        (c.getInt(c.getColumnIndex(CATEGORIES_ID))),
+                        (c.getInt(c.getColumnIndex(KEY_SUB_CATEGORIES_ID))),
+                        (c.getInt(c.getColumnIndex(KEY_PARTNER_PRICE))),
+                        (c.getInt(c.getColumnIndex(KEY_INGREDIENT_STOCK))),
+                        (c.getInt(c.getColumnIndex(KEY_MENU_ID))),
+                        (c.getInt(c.getColumnIndex(CATEGORIES_ID))),
+                        (c.getInt(c.getColumnIndex(KEY_SUB_CATEGORIES_ID))),
+                        (c.getInt(c.getColumnIndex(LABEL_ID)))
+                );
                 carts.add(cart);
             } while (c.moveToNext());
         }
@@ -613,7 +736,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                     (cursor.getInt(cursor.getColumnIndex(KEY_RESELLER_PRICE))),
                     (cursor.getInt(cursor.getColumnIndex(KEY_PARTNER_PRICE))),
                     (cursor.getInt(cursor.getColumnIndex(KEY_INGREDIENT_STOCK))),
-                    (cursor.getInt(cursor.getColumnIndex(KEY_MENU_ID)))
+                    (cursor.getInt(cursor.getColumnIndex(KEY_MENU_ID))),
+                    (cursor.getInt(cursor.getColumnIndex(CATEGORIES_ID))),
+                    (cursor.getInt(cursor.getColumnIndex(KEY_SUB_CATEGORIES_ID))),
+                    (cursor.getInt(cursor.getColumnIndex(LABEL_ID)))
             );
             // return contact
             cursor.close();
@@ -655,7 +781,27 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 carts.add(cart);
             } while (c.moveToNext());
         }
+        return carts;
+    }
 
+    public List<Tables> getAllTablesByName(String name) {
+        List<Tables> carts = new ArrayList<Tables>();
+        String selectQuery = "SELECT  * FROM " + TABLE_TABLES + " WHERE " + KEY_NAME + " = " + name;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        if (c.moveToFirst()) {
+            do {
+                Tables cart = new Tables(
+                        c.getInt(c.getColumnIndex(KEY_ID)),
+                        (c.getString(c.getColumnIndex(KEY_NAME))),
+                        (c.getInt(c.getColumnIndex(KEY_TABLES_ID)))
+                );
+                // adding to product list
+                carts.add(cart);
+            } while (c.moveToNext());
+        }
         return carts;
     }
 
@@ -688,6 +834,421 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         (c.getString(c.getColumnIndex(KEY_DESCRIPTION)))
                 );
                 // adding to product list
+                carts.add(cart);
+            } while (c.moveToNext());
+        }
+
+        return carts;
+    }
+
+    // customer info
+    public void addCustomerInfo(int user_id, String name ,String customer_info){
+        SQLiteDatabase db  = getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(KEY_NAME, name);
+        values.put(KEY_USER_ID, user_id);
+        values.put(KEY_CUSTOMER_DETAILS, customer_info);
+
+        db.insert(TABLE_CUSTOMER_INFO, null, values);
+        db.close();
+    }
+
+    public void updateCustomerInfo(int user_id, String customer_info){
+        SQLiteDatabase db = getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(KEY_CUSTOMER_DETAILS, customer_info);
+
+        db.update(TABLE_CUSTOMER_INFO, values, KEY_USER_ID + " = ? ", new String[] { String.valueOf(user_id) });
+        db.close();
+    }
+
+    public List<CustomerInfo> getCustomerInfo(String name) {
+        List<CustomerInfo> carts = new ArrayList<CustomerInfo>();
+        String selectQuery = "SELECT  * FROM " + TABLE_CUSTOMER_INFO + " WHERE " + KEY_NAME + " = '" + name + "' GROUP BY " + KEY_NAME;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        if (c.moveToFirst()) {
+            do {
+                CustomerInfo cart = new CustomerInfo(
+                        c.getInt(c.getColumnIndex(KEY_ID)),
+                        (c.getString(c.getColumnIndex(KEY_NAME))),
+                        (c.getString(c.getColumnIndex(KEY_CUSTOMER_DETAILS)))
+                );
+                // adding to product list
+                carts.add(cart);
+            } while (c.moveToNext());
+        }
+
+        return carts;
+    }
+
+    public List<CustomerInfo> getAllCustomerInfo() {
+        List<CustomerInfo> carts = new ArrayList<CustomerInfo>();
+        String selectQuery = "SELECT  * FROM " + TABLE_CUSTOMER_INFO;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        if (c.moveToFirst()) {
+            do {
+                CustomerInfo cart = new CustomerInfo(
+                        c.getInt(c.getColumnIndex(KEY_ID)),
+                        (c.getString(c.getColumnIndex(KEY_NAME))),
+                        (c.getString(c.getColumnIndex(KEY_CUSTOMER_DETAILS)))
+                );
+                // adding to product list
+                carts.add(cart);
+            } while (c.moveToNext());
+        }
+
+        return carts;
+    }
+
+    public List<CustomerInfo> getAllCustomerInfoLast() {
+        List<CustomerInfo> carts = new ArrayList<CustomerInfo>();
+        String selectQuery = "SELECT  * FROM " + TABLE_CUSTOMER_INFO + " ORDER BY " + KEY_ID + " DESC ";
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        if (c.moveToFirst()) {
+            do {
+                CustomerInfo cart = new CustomerInfo(
+                        c.getInt(c.getColumnIndex(KEY_ID)),
+                        (c.getString(c.getColumnIndex(KEY_NAME))),
+                        (c.getString(c.getColumnIndex(KEY_CUSTOMER_DETAILS)))
+                );
+                // adding to product list
+                carts.add(cart);
+            } while (c.moveToNext());
+        }
+
+        return carts;
+    }
+
+    // orders
+    public void addOrders(String order_no, int order_id, int status, String order_details, String order_date){
+        SQLiteDatabase db  = getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(KEY_ORDER_NO, order_no);
+        values.put(KEY_ORDER_ID, order_id);
+        values.put(KEY_STATUS, status);
+        values.put(KEY_ORDER_DETAILS, order_details);
+        values.put(KEY_ORDER_DATE, order_date);
+
+        db.insert(TABLE_ORDERS, null, values);
+        db.close();
+    }
+
+    public void udpdateOrders(int order_id, int status, String order_details){
+        SQLiteDatabase db  = getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(KEY_STATUS, status);
+        values.put(KEY_ORDER_DETAILS, order_details);
+
+        db.update(TABLE_ORDERS, values, KEY_ORDER_ID + " = ? ", new String[] { String.valueOf(order_id) });
+        db.close();
+    }
+
+    public List<Order> getOrderBySale(int order_id) {
+        List<Order> carts = new ArrayList<Order>();
+        String selectQuery = "SELECT  * FROM " + TABLE_ORDERS + " WHERE " + KEY_ORDER_ID + " = " + order_id;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        if (c.moveToFirst()) {
+            do {
+                Order cart = new Order(
+                        c.getInt(c.getColumnIndex(KEY_ID)),
+                        (c.getString(c.getColumnIndex(KEY_ORDER_NO))),
+                        (c.getInt(c.getColumnIndex(KEY_ORDER_ID))),
+                        (c.getInt(c.getColumnIndex(KEY_STATUS))),
+                        (c.getString(c.getColumnIndex(KEY_ORDER_DETAILS)))
+                );
+                carts.add(cart);
+            } while (c.moveToNext());
+        }
+
+        return carts;
+    }
+
+    public List<Order> getOrderByALL() {
+        List<Order> carts = new ArrayList<Order>();
+        String selectQuery = "SELECT * FROM " + TABLE_ORDERS + " GROUP BY " + KEY_ORDER_NO + " ORDER BY " + KEY_ORDER_NO + " DESC ";
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        if (c.moveToFirst()) {
+            do {
+                Order cart = new Order(
+                        c.getInt(c.getColumnIndex(KEY_ID)),
+                        (c.getString(c.getColumnIndex(KEY_ORDER_NO))),
+                        (c.getInt(c.getColumnIndex(KEY_ORDER_ID))),
+                        (c.getInt(c.getColumnIndex(KEY_STATUS))),
+                        (c.getString(c.getColumnIndex(KEY_ORDER_DETAILS)))
+                );
+                carts.add(cart);
+            } while (c.moveToNext());
+        }
+
+        return carts;
+    }
+
+    public List<Order> getOrderByAntrian() {
+        String currentData = formatter.format(d);
+        List<Order> carts = new ArrayList<Order>();
+        String selectQuery = "SELECT * FROM " + TABLE_ORDERS + " WHERE " + KEY_ORDER_DATE + " = '" + currentData + "' ORDER BY " + KEY_ID + " DESC ";
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        if (c.moveToFirst()) {
+            do {
+                Order cart = new Order(
+                        c.getInt(c.getColumnIndex(KEY_ID)),
+                        (c.getString(c.getColumnIndex(KEY_ORDER_NO))),
+                        (c.getInt(c.getColumnIndex(KEY_ORDER_ID))),
+                        (c.getInt(c.getColumnIndex(KEY_STATUS))),
+                        (c.getString(c.getColumnIndex(KEY_ORDER_DETAILS)))
+                );
+                carts.add(cart);
+            } while (c.moveToNext());
+        }
+
+        return carts;
+    }
+
+    public List<Order> getOrderByIdAsc() {
+        String currentData = formatter.format(d);
+        List<Order> carts = new ArrayList<Order>();
+        String selectQuery = "SELECT * FROM " + TABLE_ORDERS + " WHERE " + KEY_ORDER_DATE + " = '" + currentData + "' AND " + KEY_STATUS + " IN (3,4)" + " ORDER BY " + KEY_ORDER_NO + " ASC ";
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        if (c.moveToFirst()) {
+            do {
+                Order cart = new Order(
+                        c.getInt(c.getColumnIndex(KEY_ID)),
+                        (c.getString(c.getColumnIndex(KEY_ORDER_NO))),
+                        (c.getInt(c.getColumnIndex(KEY_ORDER_ID))),
+                        (c.getInt(c.getColumnIndex(KEY_STATUS))),
+                        (c.getString(c.getColumnIndex(KEY_ORDER_DETAILS)))
+                );
+                carts.add(cart);
+            } while (c.moveToNext());
+        }
+
+        return carts;
+    }
+
+    public List<Order> getOrderHistory(int page){
+        String currentData = formatter.format(d);
+        List<Order> carts = new ArrayList<Order>();
+        String selectQuery = "SELECT * FROM " + TABLE_ORDERS + " WHERE " + KEY_STATUS + " IN (2,3) "
+                + " AND " + KEY_ORDER_DATE + " = '" + currentData + "' ORDER BY " + KEY_ID + " DESC ";
+        int size = 20;
+        int offset = 0;
+        String limit = "";
+        if(page!=0){
+            offset = (page * size) - size;
+            limit = " LIMIT " + size + " OFFSET " + offset;
+        }
+
+        String query = selectQuery+limit;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(query, null);
+
+        if (c.moveToFirst()) {
+            do {
+                Order cart = new Order(
+                        c.getInt(c.getColumnIndex(KEY_ID)),
+                        (c.getString(c.getColumnIndex(KEY_ORDER_NO))),
+                        (c.getInt(c.getColumnIndex(KEY_ORDER_ID))),
+                        (c.getInt(c.getColumnIndex(KEY_STATUS))),
+                        (c.getString(c.getColumnIndex(KEY_ORDER_DETAILS)))
+                );
+                // adding to product list
+                carts.add(cart);
+            } while (c.moveToNext());
+        }
+
+        return carts;
+    }
+
+    public List<Order> getOrderRunning(){
+        List<Order> carts = new ArrayList<Order>();
+        String currentData = formatter.format(d);
+        String selectQuery = "SELECT * FROM " + TABLE_ORDERS + " WHERE " + KEY_STATUS + " NOT IN (3,4) "
+                + " AND " + KEY_ORDER_DATE + " = '" + currentData + "' ORDER BY " + KEY_ID + " DESC ";
+        String query = selectQuery;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(query, null);
+
+        if (c.moveToFirst()) {
+            do {
+                Order cart = new Order(
+                        c.getInt(c.getColumnIndex(KEY_ID)),
+                        (c.getString(c.getColumnIndex(KEY_ORDER_NO))),
+                        (c.getInt(c.getColumnIndex(KEY_ORDER_ID))),
+                        (c.getInt(c.getColumnIndex(KEY_STATUS))),
+                        (c.getString(c.getColumnIndex(KEY_ORDER_DETAILS)))
+                );
+                // adding to product list
+                carts.add(cart);
+            } while (c.moveToNext());
+        }
+
+        return carts;
+    }
+
+
+    // add washer
+    public void addWasher(String name, int washer_id, String type){
+        SQLiteDatabase db  = getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(KEY_NAME, name);
+        values.put(KEY_WASHER_ID, washer_id);
+        values.put(KEY_TYPE, type);
+
+        db.insert(TABLE_WASHER, null, values);
+        db.close();
+    }
+
+    public List<Washer> getAllWasher(String type) {
+        List<Washer> carts = new ArrayList<Washer>();
+        String selectQuery = "SELECT  * FROM " + TABLE_WASHER + " WHERE " + KEY_TYPE + " = '" + type + "' ";
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        if (c.moveToFirst()) {
+            do {
+                Washer cart = new Washer(
+                        c.getInt(c.getColumnIndex(KEY_ID)),
+                        (c.getString(c.getColumnIndex(KEY_NAME))),
+                        (c.getInt(c.getColumnIndex(KEY_WASHER_ID))),
+                        (c.getString(c.getColumnIndex(KEY_TYPE)))
+                );
+                carts.add(cart);
+            } while (c.moveToNext());
+        }
+
+        return carts;
+    }
+
+    // add employee
+    public void addEmployee(String name, int employee_id, String employee_detail){
+        SQLiteDatabase db  = getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(KEY_NAME, name);
+        values.put(KEY_EMPLOYEE_ID, employee_id);
+        values.put(KEY_EMPLOYEE_DETAIL, employee_detail);
+
+        db.insert(TABLE_EMPLOYEE, null, values);
+        db.close();
+    }
+
+    public List<Employee> getAllEmployee() {
+        List<Employee> carts = new ArrayList<Employee>();
+        String selectQuery = "SELECT  * FROM " + TABLE_EMPLOYEE;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        if (c.moveToFirst()) {
+            do {
+                Employee cart = new Employee(
+                        c.getInt(c.getColumnIndex(KEY_ID)),
+                        (c.getString(c.getColumnIndex(KEY_NAME))),
+                        (c.getInt(c.getColumnIndex(KEY_EMPLOYEE_ID))),
+                        (c.getString(c.getColumnIndex(KEY_EMPLOYEE_DETAIL)))
+                );
+                carts.add(cart);
+            } while (c.moveToNext());
+        }
+
+        return carts;
+    }
+
+    public List<Employee> getAllEmployeeByName(String name) {
+        List<Employee> carts = new ArrayList<Employee>();
+        String selectQuery = "SELECT  * FROM " + TABLE_EMPLOYEE + " WHERE " + KEY_NAME + " LIKE '%" + name + "%' LIMIT 1";
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        if (c.moveToFirst()) {
+            do {
+                Employee cart = new Employee(
+                        c.getInt(c.getColumnIndex(KEY_ID)),
+                        (c.getString(c.getColumnIndex(KEY_NAME))),
+                        (c.getInt(c.getColumnIndex(KEY_EMPLOYEE_ID))),
+                        (c.getString(c.getColumnIndex(KEY_EMPLOYEE_DETAIL)))
+                );
+                carts.add(cart);
+            } while (c.moveToNext());
+        }
+
+        return carts;
+    }
+
+    public List<Employee> getAllEmployeeById(String id) {
+        List<Employee> carts = new ArrayList<Employee>();
+        String selectQuery = "SELECT  * FROM " + TABLE_EMPLOYEE + " WHERE " + KEY_EMPLOYEE_ID + " LIKE '%" + id + "%' LIMIT 1";
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        if (c.moveToFirst()) {
+            do {
+                Employee cart = new Employee(
+                        c.getInt(c.getColumnIndex(KEY_ID)),
+                        (c.getString(c.getColumnIndex(KEY_NAME))),
+                        (c.getInt(c.getColumnIndex(KEY_EMPLOYEE_ID))),
+                        (c.getString(c.getColumnIndex(KEY_EMPLOYEE_DETAIL)))
+                );
+                carts.add(cart);
+            } while (c.moveToNext());
+        }
+
+        return carts;
+    }
+
+    // ppn
+    public void addPPN(int percentage){
+        SQLiteDatabase db  = getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(KEY_PERCENTAGE, percentage);
+
+        db.insert(TABLE_PPN, null, values);
+        db.close();
+    }
+
+    public List<PPN> getPPN() {
+        List<PPN> carts = new ArrayList<PPN>();
+        String selectQuery = "SELECT  * FROM " + TABLE_PPN + " LIMIT 1";
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        if (c.moveToFirst()) {
+            do {
+                PPN cart = new PPN(
+                        c.getInt(c.getColumnIndex(KEY_ID)),
+                        (c.getInt(c.getColumnIndex(KEY_PERCENTAGE)))
+                );
                 carts.add(cart);
             } while (c.moveToNext());
         }
@@ -740,5 +1301,159 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("DELETE FROM " + TABLE_MENUS);
         db.close();
+    }
+
+    public void truncateOrders() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM " + TABLE_ORDERS);
+        db.close();
+    }
+
+    public void truncateWasher() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM " + TABLE_WASHER);
+        db.close();
+    }
+    public void truncateEmployee() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM " + TABLE_EMPLOYEE);
+        db.close();
+    }
+
+    public void truncatePPN() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM " + TABLE_PPN);
+        db.close();
+    }
+
+    public void truncateCustomerInfo() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM " + TABLE_CUSTOMER_INFO);
+        db.close();
+    }
+
+    public void deleteOrder(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM " + TABLE_ORDERS + " WHERE " + KEY_ORDER_ID + " = " + id);
+        db.close();
+    }
+
+    public void deleteCustomerInfo(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM " + TABLE_CUSTOMER_INFO + " WHERE " + KEY_USER_ID + " = " + id);
+        db.close();
+    }
+
+    public void deleteSalesToday() {
+        String currentData = formatter.format(d);
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM " + TABLE_ORDERS + " WHERE " + KEY_ORDER_DATE + " = '" + currentData + "'");
+        db.close();
+    }
+
+    public void exportToDownload(Context context, String tableName, ProgressDialog loadingDialog){
+        loadingDialog.show();
+        SQLiteDatabase db = getWritableDatabase();
+        File downloadsFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        if (!downloadsFolder.exists()) {
+            Toast.makeText(context, "Gagal Export", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        File csvFile = new File(downloadsFolder, tableName+".csv");
+
+        Cursor cursor = db.rawQuery("SELECT * FROM '" + tableName +"'", null);
+
+        int columnCount = cursor.getColumnCount();
+
+        FileWriter writer = null;
+        try {
+            writer = new FileWriter(csvFile);
+
+            for (int i = 0; i < columnCount; i++) {
+                writer.append(cursor.getColumnName(i));
+                if (i < columnCount - 1) writer.append(",");
+            }
+            writer.append("\n");
+
+            while (cursor.moveToNext()) {
+                for (int i = 0; i < columnCount; i++) {
+                    writer.append(cursor.getString(i));
+                    if (i < columnCount - 1) writer.append(",");
+                }
+                writer.append("\n");
+            }
+
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            loadingDialog.dismiss();
+            Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show();
+            throw new RuntimeException(e);
+        } finally {
+            if (cursor != null) cursor.close();
+            Toast.makeText(context, "Berhasil Export", Toast.LENGTH_SHORT).show();
+            loadingDialog.dismiss();
+        }
+    }
+
+    public void importDatabase(Context context, String type, Uri fileUri, ProgressDialog loading){
+        try {
+            InputStream inputStream = context.getContentResolver().openInputStream(fileUri);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+
+            String line = reader.readLine();
+            if (line != null) {
+                String[] columns = line.split(",");
+
+                SQLiteDatabase db = this.getWritableDatabase();
+                while ((line = reader.readLine()) != null) {
+                    String[] data = line.split(",");
+                    ContentValues values = new ContentValues();
+
+                    for (int i = 0; i < columns.length; i++) {
+                        if(type.equals("orders")) {
+                            if (i >= 5) {
+                                String valOf = "";
+                                for (int j = 5; j < data.length; j++) {
+                                    String coma = "";
+                                    if (j < data.length) {
+                                        coma = ",";
+                                    }
+                                    valOf += data[j] + coma;
+                                }
+                                values.put(KEY_ORDER_DETAILS, valOf);
+                            } else {
+                                values.put(columns[i], data[i]);
+                            }
+                        }else if(type.equals("customer_info")){
+                            if (i >= 3) {
+                                String valOf = "";
+                                for (int j = 3; j < data.length; j++) {
+                                    String coma = "";
+                                    if (j < data.length) {
+                                        coma = ",";
+                                    }
+                                    valOf += data[j] + coma;
+                                }
+                                values.put(KEY_CUSTOMER_DETAILS, valOf);
+                            } else {
+                                values.put(columns[i], data[i]);
+                            }
+                        }else {
+                            values.put(columns[i], data[i]);
+                        }
+                    }
+                    db.insert(type, null, values);
+                }
+
+                reader.close();
+                inputStream.close();
+                loading.dismiss();
+            }
+        } catch (IOException e) {
+            Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show();
+            loading.show();
+            e.printStackTrace();
+        }
     }
 }

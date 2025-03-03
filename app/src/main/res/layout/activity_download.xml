@@ -15,17 +15,6 @@
                     android:layout_height="wrap_content"
                     tools:context=".AdminActivity">
 
-                    <TextView
-                        android:id="@+id/pair_device"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentBottom="true"
-                        android:layout_centerInParent="true"
-                        android:layout_marginStart="@dimen/paddingScreen"
-                        android:layout_marginTop="@dimen/paddingScreen"
-                        android:layout_marginEnd="@dimen/paddingScreen"
-                        android:layout_marginBottom="@dimen/paddingScreen" />
-
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
@@ -35,45 +24,12 @@
                         android:gravity="center"
                         android:orientation="vertical">
 
-                        <Switch
-                            android:id="@+id/enable_print"
+                        <TextView
                             android:layout_width="200dp"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="@dimen/spaceBottom"
                             android:fontFamily="@font/font_medium"
-                            android:text="@string/enable_print"
-                            android:textAppearance="@style/TextAppearance.AppCompat.Small" />
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:orientation="horizontal">
-
-                            <Button
-                                android:id="@+id/scan_printer"
-                                style="@style/Widget.AppCompat.Button.Borderless"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_margin="@dimen/spaceBottom"
-                                android:background="@drawable/btn_filled_green"
-                                android:paddingStart="@dimen/paddingScreen"
-                                android:paddingEnd="@dimen/paddingScreen"
-                                android:text="@string/select_printer"
-                                android:textAllCaps="false"
-                                android:textColor="@color/button_filled_green_gradient" />
-
-                            <Button
-                                android:id="@+id/test_print"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_margin="@dimen/spaceBottom"
-                                android:background="@drawable/btn_filled_green"
-                                android:paddingStart="@dimen/paddingScreen"
-                                android:paddingEnd="@dimen/paddingScreen"
-                                android:text="@string/tes_printer"
-                                android:textAllCaps="false"
-                                android:textColor="@color/button_filled_green_gradient" />
-                        </LinearLayout>
+                            android:text="Form Download Data"/>
 
                         <LinearLayout
                             android:layout_width="wrap_content"
@@ -82,21 +38,34 @@
                             android:orientation="horizontal">
 
                             <Button
-                                android:id="@+id/print_report_tunai"
+                                android:id="@+id/download_data"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="@dimen/spaceBottom"
+                                android:layout_weight="1"
+                                android:background="@drawable/btn_filled_purple"
+                                android:paddingStart="@dimen/paddingScreen"
+                                android:paddingEnd="@dimen/paddingScreen"
+                                android:text="Download Customer"
+                                android:textAllCaps="false"
+                                android:textColor="@color/text_purple" />
+
+
+                            <Button
+                                android:id="@+id/download_menu"
                                 style="@style/Widget.AppCompat.Button.Borderless"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="@dimen/spaceBottom"
                                 android:background="@drawable/btn_filled_purple"
-                                android:onClick="getDailyReportTunai"
                                 android:paddingStart="@dimen/paddingScreen"
                                 android:paddingEnd="@dimen/paddingScreen"
-                                android:text="@string/print_laporan_harian_tunai"
+                                android:text="Download Menu"
                                 android:textAllCaps="false"
                                 android:textColor="@color/text_purple" />
 
                             <Button
-                                android:id="@+id/print_report_debit"
+                                android:id="@+id/download_categories"
                                 style="@style/Widget.AppCompat.Button.Borderless"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -105,12 +74,12 @@
                                 android:onClick="getDailyReportDebit"
                                 android:paddingStart="@dimen/paddingScreen"
                                 android:paddingEnd="@dimen/paddingScreen"
-                                android:text="@string/print_laporan_harian_debit"
+                                android:text="Download Categories"
                                 android:textAllCaps="false"
                                 android:textColor="@color/text_purple" />
 
                             <Button
-                                android:id="@+id/print_report_stock"
+                                android:id="@+id/download_sub_categories"
                                 style="@style/Widget.AppCompat.Button.Borderless"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -119,7 +88,7 @@
                                 android:onClick="getDailyReportStock"
                                 android:paddingStart="@dimen/paddingScreen"
                                 android:paddingEnd="@dimen/paddingScreen"
-                                android:text="@string/print_laporan_harian_stock"
+                                android:text="Download Sub Categories"
                                 android:textAllCaps="false"
                                 android:textColor="@color/text_purple"
                                 android:visibility="visible" />
@@ -133,72 +102,112 @@
                             android:orientation="horizontal">
 
                             <Button
-                                android:id="@+id/print_report_produk"
+                                android:id="@+id/download_label"
                                 style="@style/Widget.AppCompat.Button.Borderless"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="@dimen/spaceBottom"
                                 android:background="@drawable/btn_filled_purple"
-                                android:onClick="getDailyReportProduct"
+                                android:onClick="getDailyReportStock"
                                 android:paddingStart="@dimen/paddingScreen"
                                 android:paddingEnd="@dimen/paddingScreen"
-                                android:text="@string/print_laporan_harian_produk"
+                                android:text="Download Labels"
                                 android:textAllCaps="false"
                                 android:textColor="@color/text_purple"
                                 android:visibility="visible" />
 
+                            <Button
+                                android:id="@+id/download_tables"
+                                style="@style/Widget.AppCompat.Button.Borderless"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="@dimen/spaceBottom"
+                                android:background="@drawable/btn_filled_purple"
+                                android:onClick="getDailyReportTunai"
+                                android:paddingStart="@dimen/paddingScreen"
+                                android:paddingEnd="@dimen/paddingScreen"
+                                android:text="Download Tables"
+                                android:textAllCaps="false"
+                                android:textColor="@color/text_purple" />
+
+                            <Button
+                                android:id="@+id/download_payment"
+                                style="@style/Widget.AppCompat.Button.Borderless"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="@dimen/spaceBottom"
+                                android:background="@drawable/btn_filled_purple"
+                                android:onClick="getDailyReportDebit"
+                                android:paddingStart="@dimen/paddingScreen"
+                                android:paddingEnd="@dimen/paddingScreen"
+                                android:text="Download Payment Method"
+                                android:textAllCaps="false"
+                                android:textColor="@color/text_purple" />
+
+                            <Button
+                                android:id="@+id/download_ppn"
+                                style="@style/Widget.AppCompat.Button.Borderless"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="@dimen/spaceBottom"
+                                android:background="@drawable/btn_filled_purple"
+                                android:onClick="getDailyReportDebit"
+                                android:paddingStart="@dimen/paddingScreen"
+                                android:paddingEnd="@dimen/paddingScreen"
+                                android:text="Download PPN"
+                                android:textAllCaps="false"
+                                android:textColor="@color/text_purple" />
+
                         </LinearLayout>
 
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/spaceBottom"
                             android:gravity="center"
                             android:orientation="horizontal">
 
                             <Button
-                                android:id="@+id/print_report_tepung"
+                                android:id="@+id/download_washer"
                                 style="@style/Widget.AppCompat.Button.Borderless"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="@dimen/spaceBottom"
-                                android:background="@drawable/btn_filled_orange"
-                                android:onClick="getDailyReportTepung"
+                                android:background="@drawable/btn_filled_purple"
+                                android:onClick="getDailyReportStock"
                                 android:paddingStart="@dimen/paddingScreen"
                                 android:paddingEnd="@dimen/paddingScreen"
-                                android:text="@string/print_laporan_harian_tepung"
+                                android:text="Download Washer"
                                 android:textAllCaps="false"
-                                android:textColor="@color/text_orange"
-                                tools:visibility="gone" />
+                                android:textColor="@color/text_purple"
+                                android:visibility="visible" />
 
                             <Button
-                                android:id="@+id/print_report_kebuli"
+                                android:id="@+id/download_order"
                                 style="@style/Widget.AppCompat.Button.Borderless"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="@dimen/spaceBottom"
-                                android:background="@drawable/btn_filled_orange"
-                                android:onClick="getDailyReportKebuli"
+                                android:background="@drawable/btn_filled_purple"
+                                android:onClick="getDailyReportTunai"
                                 android:paddingStart="@dimen/paddingScreen"
                                 android:paddingEnd="@dimen/paddingScreen"
-                                android:text="@string/print_laporan_harian_kebuli"
+                                android:text="Download Order"
                                 android:textAllCaps="false"
-                                android:textColor="@color/text_orange"
-                                tools:visibility="gone" />
+                                android:textColor="@color/text_purple" />
 
                             <Button
-                                android:id="@+id/print_report_receipable"
+                                android:id="@+id/download_employee"
                                 style="@style/Widget.AppCompat.Button.Borderless"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="@dimen/spaceBottom"
-                                android:background="@drawable/btn_filled_orange"
-                                android:onClick="getDailyReportReceipable"
+                                android:background="@drawable/btn_filled_purple"
+                                android:onClick="getDailyReportDebit"
                                 android:paddingStart="@dimen/paddingScreen"
                                 android:paddingEnd="@dimen/paddingScreen"
-                                android:text="@string/print_laporan_piutang"
+                                android:text="Download Employee"
                                 android:textAllCaps="false"
-                                android:textColor="@color/text_orange" />
+                                android:textColor="@color/text_purple" />
 
                         </LinearLayout>
 
@@ -209,43 +218,7 @@
                             android:orientation="horizontal">
 
                             <Button
-                                android:id="@+id/delete_sales"
-                                style="@style/Widget.AppCompat.Button.Borderless"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="12dp"
-                                android:background="@drawable/btn_filled_red"
-                                android:onClick="deleteSales"
-                                android:paddingStart="@dimen/paddingScreen"
-                                android:paddingEnd="@dimen/paddingScreen"
-                                android:text="@string/delete_sales"
-                                android:textAllCaps="false"
-                                android:textColor="@color/text_red" />
-
-                            <Button
-                                android:id="@+id/close_cashier"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
-                                android:background="@drawable/btn_filled_blue"
-                                android:paddingStart="@dimen/paddingScreen"
-                                android:paddingEnd="@dimen/paddingScreen"
-                                android:text="@string/close_cashier_registration"
-                                android:textAllCaps="false"
-                                android:textColor="@color/button_filled_blue_gradient" />
-
-                        </LinearLayout>
-
-
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/spaceBottom"
-                            android:orientation="horizontal">
-
-                            <Button
-                                android:id="@+id/form_download"
+                                android:id="@+id/sharing_customer"
                                 style="@style/Widget.AppCompat.Button.Borderless"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -253,7 +226,90 @@
                                 android:background="@drawable/btn_filled_purple"
                                 android:paddingStart="@dimen/paddingScreen"
                                 android:paddingEnd="@dimen/paddingScreen"
-                                android:text="Form Download"
+                                android:text="Sharing file customer"
+                                android:textAllCaps="false"
+                                android:textColor="@color/text_purple" />
+
+                            <Button
+                                android:id="@+id/sharing_sale"
+                                style="@style/Widget.AppCompat.Button.Borderless"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="12dp"
+                                android:background="@drawable/btn_filled_purple"
+                                android:paddingStart="@dimen/paddingScreen"
+                                android:paddingEnd="@dimen/paddingScreen"
+                                android:text="Sharing file sale"
+                                android:textAllCaps="false"
+                                android:textColor="@color/text_purple" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/spaceBottom"
+                            android:orientation="horizontal">
+
+                            <Button
+                                android:id="@+id/import_customer"
+                                style="@style/Widget.AppCompat.Button.Borderless"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="12dp"
+                                android:background="@drawable/btn_filled_purple"
+                                android:paddingStart="@dimen/paddingScreen"
+                                android:paddingEnd="@dimen/paddingScreen"
+                                android:text="Import file customer"
+                                android:textAllCaps="false"
+                                android:textColor="@color/text_purple" />
+
+                            <Button
+                                android:id="@+id/import_customer_info"
+                                style="@style/Widget.AppCompat.Button.Borderless"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="12dp"
+                                android:background="@drawable/btn_filled_purple"
+                                android:paddingStart="@dimen/paddingScreen"
+                                android:paddingEnd="@dimen/paddingScreen"
+                                android:text="Import file customer info"
+                                android:textAllCaps="false"
+                                android:textColor="@color/text_purple" />
+
+
+                            <Button
+                                android:id="@+id/import_sale"
+                                style="@style/Widget.AppCompat.Button.Borderless"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="12dp"
+                                android:background="@drawable/btn_filled_purple"
+                                android:paddingStart="@dimen/paddingScreen"
+                                android:paddingEnd="@dimen/paddingScreen"
+                                android:text="Import file sale"
+                                android:textAllCaps="false"
+                                android:textColor="@color/text_purple" />
+
+                        </LinearLayout>
+
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/spaceBottom"
+                            android:orientation="horizontal">
+
+                            <Button
+                                android:id="@+id/clean_data_sales"
+                                style="@style/Widget.AppCompat.Button.Borderless"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="12dp"
+                                android:background="@drawable/btn_filled_purple"
+                                android:paddingStart="@dimen/paddingScreen"
+                                android:paddingEnd="@dimen/paddingScreen"
+                                android:text="Bersihkan data sales hari ini"
                                 android:textAllCaps="false"
                                 android:textColor="@color/text_purple" />
 

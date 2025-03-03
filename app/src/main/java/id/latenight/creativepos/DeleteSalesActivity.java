@@ -45,6 +45,7 @@ import java.util.Objects;
 
 import id.latenight.creativepos.adapter.Order;
 import id.latenight.creativepos.adapter.DeleteOrderAdapter;
+import id.latenight.creativepos.util.DatabaseHandler;
 import id.latenight.creativepos.util.SessionManager;
 import id.latenight.creativepos.util.URI;
 
@@ -62,6 +63,7 @@ public class DeleteSalesActivity extends AppCompatActivity implements DeleteOrde
     private EditText date;
     private Spinner spinnerStatusOrder;
     private String[] statusOrders = {"Unpaid","Paid"};
+    private DatabaseHandler db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,6 +115,7 @@ public class DeleteSalesActivity extends AppCompatActivity implements DeleteOrde
 
         lytAlert = findViewById(R.id.lyt_alert);
         txtAlert = findViewById(R.id.txt_alert);
+        db = new DatabaseHandler(this);
         // slide-up animation
         slideUp = AnimationUtils.loadAnimation(this, R.anim.slide_up);
 
@@ -183,14 +186,13 @@ public class DeleteSalesActivity extends AppCompatActivity implements DeleteOrde
             orderHistoryAdapter.notifyDataSetChanged();
             progressBar.setVisibility(View.GONE);
         }, error -> progressBar.setVisibility(View.GONE));
-        request.setRetryPolicy(new DefaultRetryPolicy(20 * 1000, 2, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        request.setRetryPolicy(new DefaultRetryPolicy(30000, 1, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         RequestQueue requestQueue = Volley.newRequestQueue(this);
         requestQueue.add(request);
     }
 
     @SuppressLint("SetTextI18n")
     private void deleteSales(String sale_id, int position) {
-        //Log.e("PARAM", sale_id);
         progressBar.setVisibility(View.VISIBLE);
         StringRequest postRequest = new StringRequest(Request.Method.POST, API_DELETE_SALES,
                 response -> {
@@ -202,10 +204,10 @@ public class DeleteSalesActivity extends AppCompatActivity implements DeleteOrde
                             showSuccess(jsonObject.getString("message"));
                             orderHistoryList.remove(position);
                             orderHistoryAdapter.notifyItemRemoved(position);
+                            db.deleteOrder(Integer.valueOf(sale_id));
                         } else {
                             showError(jsonObject.getString("message"));
                         }
-
                     } catch (JSONException e) {
                         showError("Terjadi kesalahan server");
                     }

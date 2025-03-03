@@ -1,13 +1,5 @@
 package id.latenight.creativepos;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SearchView;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
@@ -16,7 +8,14 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.android.volley.DefaultRetryPolicy;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
@@ -32,8 +31,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
 import id.latenight.creativepos.adapter.Order;
 import id.latenight.creativepos.adapter.OrderAdapter;
+import id.latenight.creativepos.model.CustomerInfo;
 import id.latenight.creativepos.util.DatabaseHandler;
 import id.latenight.creativepos.util.SessionManager;
 import id.latenight.creativepos.util.URI;
@@ -51,6 +52,7 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
     private String currentData;
     private SessionManager sessionManager;
     private int param_page=1;
+    private Integer[] car_salon, leater_seat;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +63,9 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
         sessionManager = new SessionManager(this);
 
         formatRupiah = NumberFormat.getInstance();
+
+        car_salon = new Integer[]{11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35};
+        leater_seat = new Integer[]{42,43,44,45,46,47,48,49,50,51};
 
         progressBar = findViewById(R.id.progressBar);
         progressBar2 = findViewById(R.id.progressBar2);
@@ -140,111 +145,150 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
     }
 
     private void getRunningOrder() {
-        Log.e("URL_", URI.API_NEW_ORDER+'/'+sessionManager.getId());
         runningOrderList.clear();
         runningOrderAdapter.notifyDataSetChanged();
         progressBar2.setVisibility(View.VISIBLE);
-        request = new JsonArrayRequest(URI.API_NEW_ORDER+'/'+sessionManager.getId(), response -> {
-            JSONObject jsonObject;
-            db.truncate();
-            //Log.e("Response", response.toString());
-            for (int i = 0; i < response.length(); i++){
-                try {
-                    jsonObject = response.getJSONObject(i);
-                    JSONArray items = new JSONArray(jsonObject.getString("items"));
-                    String menu_category = "";
-                    for(int j=0; j<items.length(); j++)
-                    {
-                        JSONObject js = items.getJSONObject(j);
-                        if(js.getString("menu_category").equals("15"))
-                        {
-                            menu_category = "15";
-                            break;
-                        }
+        List<id.latenight.creativepos.adapter.sampler.Order> orderLIst = db.getOrderRunning();
+        for (int i = 0; i < orderLIst.size(); i++) {
+            try {
+                JSONObject jsonObject = new JSONObject(orderLIst.get(i).getOrder_details());
+                JSONArray items = new JSONArray(jsonObject.getString("items"));
+                String menu_category = "";
+                String category = "";
+                String status = "";
+                for (int j = 0; j < items.length(); j++) {
+                    JSONObject js = items.getJSONObject(j);
+                    if (js.getInt("category_id") == 1) {
+                        category = "Mobil";
+                    } else if (js.getInt("category_id") == 2) {
+                        category = "Motor";
+                    } else if (js.getInt("category_id") == 4) {
+                        category = "Elf";
+                    } else if (js.getInt("category_id") == 9) {
+                        category = "Pick Up";
+                    } else if (js.getInt("category_id") == 10) {
+                        category = "Cuci Mesin";
+                    } else if (new CustomerInfo().isInArray(car_salon, js.getInt("category_id"))) {
+                        category = "Salon Mobil";
+                    } else if (new CustomerInfo().isInArray(leater_seat, js.getInt("category_id"))) {
+                        category = "Jok Mobil";
+                    } else {
+                        category = "Warung";
                     }
-                    Order listData = new Order(
-                            jsonObject.getString("id"),
-                            jsonObject.getString("sale_no"),
-                            jsonObject.getString("total_payable"),
-                            jsonObject.getString("sale_date"),
-                            jsonObject.getString("order_time"),
-                            jsonObject.getString("order_type"),
-                            jsonObject.getString("customer_name"),
-                            jsonObject.getString("order_status"),
-                            jsonObject.getString("sub_total"),
-                            jsonObject.getString("sub_total_discount_value"),
-                            jsonObject.getString("total_discount_amount"),
-                            jsonObject.getString("cust_notes"),
-                            jsonObject.getString("queue_no"),
-                            jsonObject.getString("category"),
-                            jsonObject.getInt("status"),
-                            menu_category);
-                    runningOrderList.add(listData);
-                    db.addSales(jsonObject.getString("sale_no"), String.valueOf(jsonObject));
-                } catch (JSONException e) {
-                    e.printStackTrace();
+
+                    if (js.getString("menu_category").equals("15")) {
+                        menu_category = "15";
+                    }
                 }
+                if(jsonObject.getInt("order_status") == 9){
+                    status = "Proses Leather Seat";
+                }else if(jsonObject.getInt("order_status") == 8){
+                    status = "Proses Cuci";
+                }else if(jsonObject.getInt("order_status") == 7){
+                    status = "Proses Salon";
+                }else if(jsonObject.getInt("order_status") == 6){
+                    status = "Proses Cuci";
+                }else if(jsonObject.getInt("order_status") == 5){
+                    status = "Masih Mengantri";
+                }else if(jsonObject.getInt("order_status") == 4){
+                    status = "Batal";
+                }else if(jsonObject.getInt("order_status") == 3){
+                    status = "Selesai";
+                }else if(jsonObject.getInt("order_status") == 2){
+                    status = "Sudah Bayar";
+                }else if(jsonObject.getInt("order_status") == 1){
+                    status = "Dalam Proses";
+                }else{
+                    status = "Dalam Proses";
+                }
+                Order listData = new Order(
+                        jsonObject.getString("id"),
+                        jsonObject.getString("sale_no"),
+                        jsonObject.getString("total_payable"),
+                        jsonObject.getString("sale_date"),
+                        jsonObject.getString("order_time"),
+                        jsonObject.getString("order_type"),
+                        jsonObject.getString("customer_name"),
+                        status,
+                        jsonObject.getString("sub_total"),
+                        jsonObject.getString("sub_total_discount_value"),
+                        jsonObject.getString("total_discount_amount"),
+                        jsonObject.getString("cust_notes"),
+                        jsonObject.getString("queue_no"),
+                        category,
+                        jsonObject.getInt("status"),
+                        menu_category);
+                runningOrderList.add(listData);
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-            runningOrderAdapter.notifyDataSetChanged();
-            progressBar2.setVisibility(View.GONE);
-            getStockOut();
-        }, error -> progressBar2.setVisibility(View.GONE));
-        request.setRetryPolicy(new DefaultRetryPolicy(20 * 1000, 2, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-        requestQueue= Volley.newRequestQueue(this);
-        requestQueue.add(request);
+        }
+        runningOrderAdapter.notifyDataSetChanged();
+        progressBar2.setVisibility(View.GONE);
     }
 
     @SuppressLint("SetTextI18n")
     private void getOrderHistory() {
-        Log.e("URL_", URI.API_TEN_SALES+'/'+sessionManager.getId()+"?page="+param_page);
         progressBar.setVisibility(View.VISIBLE);
-        request = new JsonArrayRequest(URI.API_TEN_SALES+'/'+sessionManager.getId()+"?page="+param_page, response -> {
-            JSONObject jsonObject;
-            //Log.e("Response", response.toString());
-            for (int i = 0; i < response.length(); i++){
-                try {
-                    jsonObject = response.getJSONObject(i);
-                    JSONArray items = new JSONArray(jsonObject.getString("items"));
-                    String menu_category = "";
-                    for(int j=0; j<items.length(); j++)
-                    {
-                        JSONObject js = items.getJSONObject(j);
-                        if(js.getString("menu_category").equals("15"))
-                        {
-                            menu_category = "15";
-                            break;
-                        }
+        List<id.latenight.creativepos.adapter.sampler.Order> orderList = db.getOrderHistory(param_page);
+        Log.e("RESULT", orderList.toString());
+        for (int i = 0; i < orderList.size(); i++) {
+            try {
+                JSONObject jsonObject = new JSONObject(orderList.get(i).getOrder_details());
+                JSONArray items = new JSONArray(jsonObject.getString("items"));
+                String menu_category = "";
+                String category = "", status = "";
+                for (int j = 0; j < items.length(); j++) {
+                    JSONObject js = items.getJSONObject(j);
+                    if (js.getInt("category_id") == 1) {
+                        category = "Mobil";
+                    } else if (js.getInt("category_id") == 2) {
+                        category = "Motor";
+                    } else if (js.getInt("category_id") == 4) {
+                        category = "Elf";
+                    } else if (js.getInt("category_id") == 9) {
+                        category = "Pick Up";
+                    } else if (js.getInt("category_id") == 10) {
+                        category = "Cuci Mesin";
+                    } else if (new CustomerInfo().isInArray(car_salon, js.getInt("category_id"))) {
+                        category = "Salon Mobil";
+                    } else if (new CustomerInfo().isInArray(leater_seat, js.getInt("category_id"))) {
+                        category = "Jok Mobil";
+                    } else {
+                        category = "Warung";
                     }
-                    Order listData = new Order(jsonObject.getString("id"), jsonObject.getString("sale_no"), jsonObject.getString("total_payable"), jsonObject.getString("sale_date"), jsonObject.getString("order_time"), jsonObject.getString("order_type"), jsonObject.getString("customer_name"), jsonObject.getString("order_status"), jsonObject.getString("sub_total"), jsonObject.getString("sub_total_discount_value"), jsonObject.getString("total_discount_amount"), jsonObject.getString("cust_notes"), jsonObject.getString("queue_no"), jsonObject.getString("category"), jsonObject.getInt("status"), menu_category);
-                    orderHistoryList.add(listData);
-                    db.addSales(jsonObject.getString("sale_no"), String.valueOf(jsonObject));
-                } catch (JSONException e) {
-                    e.printStackTrace();
+
+                    if (js.getString("menu_category").equals("15")) {
+                        menu_category = "15";
+                    }
                 }
+                if (jsonObject.getInt("order_status") == 5) {
+                    status = "Masih Mengantri";
+                } else if (jsonObject.getInt("order_status") == 4) {
+                    status = "Batal";
+                } else if (jsonObject.getInt("order_status") == 3) {
+                    status = "Selesai";
+                } else if (jsonObject.getInt("order_status") == 2) {
+                    status = "Sudah Bayar";
+                } else if (jsonObject.getInt("order_status") == 1) {
+                    status = "Dalam Proses";
+                }
+                Order listData = new Order(jsonObject.getString("id"), jsonObject.getString("sale_no"), jsonObject.getString("total_payable"), jsonObject.getString("sale_date"), jsonObject.getString("order_time"), jsonObject.getString("order_type"), jsonObject.getString("customer_name"), status, jsonObject.getString("sub_total"), jsonObject.getString("sub_total_discount_value"), jsonObject.getString("total_discount_amount"), jsonObject.getString("cust_notes"), jsonObject.getString("queue_no"), category, jsonObject.getInt("order_status"), menu_category);
+                orderHistoryList.add(listData);
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-            orderHistoryAdapter.notifyDataSetChanged();
-            progressBar.setVisibility(View.GONE);
-            getTotalSalesToday();
-//            int totalPrice = 0;
-//            for (int i = 0; i<orderHistoryList.size(); i++)
-//            {
-//                totalPrice += Float.parseFloat(orderHistoryList.get(i).getTotalPayable());
-//                Log.e("total", String.valueOf(orderHistoryList.get(i).getTotalPayable()));
-//            }
-//            totalSalesToday.setText(getResources().getString(R.string.currency)+" "+formatRupiah.format(totalPrice).replace(',', '.'));
-        }, error -> progressBar.setVisibility(View.GONE));
-        request.setRetryPolicy(new DefaultRetryPolicy(20 * 1000, 2, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-        requestQueue= Volley.newRequestQueue(this);
-        requestQueue.add(request);
+        }
+        orderHistoryAdapter.notifyDataSetChanged();
+        progressBar.setVisibility(View.GONE);
+        getTotalSalesToday();
     }
 
     @SuppressLint("SetTextI18n")
     private void getStockOut() {
-        Log.e("URL_", URI.API_STOCK_OUT+sessionManager.getId());
         StringRequest stringRequest = new StringRequest(URI.API_STOCK_OUT + sessionManager.getId(), response -> {
 
             float value_stock = (Float.parseFloat(response));
-            Log.e("PPN", String.valueOf(value_stock));
             totalStockToday.setText(formatRupiah.format(value_stock).replace(',', '.'));
         }, error -> {
         });
@@ -254,16 +298,17 @@ public class OrderHistoryActivity extends AppCompatActivity implements OrderAdap
 
     @SuppressLint("SetTextI18n")
         private void getTotalSalesToday() {
-        Log.e("URL_", URI.API_TOTAL_SALES_TODAY+sessionManager.getId());
-        StringRequest stringRequest = new StringRequest(URI.API_TOTAL_SALES_TODAY + sessionManager.getId(), response -> {
+        List<id.latenight.creativepos.adapter.sampler.Order> orderList = db.getOrderHistory(0);
+        int totalPayable = 0;
+        for (int i=0; i<orderList.size(); i++){
+            try {
+                JSONObject jsonObject = new JSONObject(orderList.get(i).getOrder_details());
+                totalPayable += jsonObject.getInt("total_payable");
+            }catch (Exception e){
 
-            float value = (Float.parseFloat(response));
-            Log.e("total sales today", String.valueOf(value));
-            totalSalesToday.setText(formatRupiah.format(value).replace(',', '.'));
-        }, error -> {
-        });
-        requestQueue = Volley.newRequestQueue(this);
-        requestQueue.add(stringRequest);
+            }
+        }
+        totalSalesToday.setText(formatRupiah.format(totalPayable).replace(',', '.'));
     }
 
     public void holdOrderList(View view) {

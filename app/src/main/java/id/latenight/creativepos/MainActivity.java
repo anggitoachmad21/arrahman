@@ -60,7 +60,6 @@ import org.json.JSONObject;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,9 +70,11 @@ import id.latenight.creativepos.adapter.Customer;
 import id.latenight.creativepos.adapter.Product;
 import id.latenight.creativepos.adapter.ProductAdapter;
 import id.latenight.creativepos.adapter.sampler.Categories;
+import id.latenight.creativepos.adapter.sampler.CustomerInfo;
 import id.latenight.creativepos.adapter.sampler.CustomerValues;
 import id.latenight.creativepos.adapter.sampler.Labels;
 import id.latenight.creativepos.adapter.sampler.Menus;
+import id.latenight.creativepos.adapter.sampler.Order;
 import id.latenight.creativepos.adapter.sampler.SubCategories;
 import id.latenight.creativepos.adapter.sampler.Tables;
 import id.latenight.creativepos.util.DatabaseHandler;
@@ -151,6 +152,34 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         Bundle extras = getIntent().getExtras();
 
         db = new DatabaseHandler(this);
+
+        if(db.getAllCustomer(0, "").size() == 0){
+            Toast.makeText(this, "Harap Download Data Customer Terlebih Dahulu", Toast.LENGTH_SHORT).show();
+            super.onBackPressed();
+            finish();
+            return;
+        }
+
+        if(db.getAllCustomerInfo().size() == 0){
+            Toast.makeText(this, "Harap Download Data Customer Info Terlebih Dahulu Atau Download ulang customer", Toast.LENGTH_SHORT).show();
+            super.onBackPressed();
+            finish();
+            return;
+        }
+
+        if(db.getAllMenus("", 0, 0, 0, 0).size() == 0){
+            Toast.makeText(this, "Harap Download Data Menu Terlebih Dahulu", Toast.LENGTH_SHORT).show();
+            super.onBackPressed();
+            finish();
+            return;
+        }
+
+        if(db.getAllCategories().size() == 0){
+            Toast.makeText(this, "Harap Download Data Categories Terlebih Dahulu", Toast.LENGTH_SHORT).show();
+            super.onBackPressed();
+            finish();
+            return;
+        }
 
         sessionManager = new SessionManager(this);
 
@@ -325,8 +354,10 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         }
         btnBackTab = findViewById(R.id.btn_back_tab);
         tabCategory = findViewById(R.id.tab_category);
-
-        getCustomers("");
+        getCategories();
+        if(!update_order && !split_bill) {
+            getCustomers("", "");
+        }
         getTables();
     }
 
@@ -456,10 +487,9 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
                             showError(msg);
                         } else {
                             String msg_name = jsonObject.getString("name");
-                            getCustomers(msg_name);
-                            showSuccess(msg);
                             JSONObject customer_info = new JSONObject(jsonObject.getString("data"));
                             db.addCustomers(customer_info.getString("name"), customer_info.getInt("id"), customer_info.getInt("is_member"));
+                            getCustomerInfo(customer_info.getInt("id"), msg);
                         }
                     } catch (JSONException e) {
                         showError("Terjadi kesalahan server");
@@ -492,6 +522,66 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         Volley.newRequestQueue(getApplicationContext()).add(postRequest);
     }
 
+    public void getCustomerInfo(int customer_id, String msg){
+        StringRequest stringRequest = new StringRequest(URI.UPDATE_CUSTOMER_INFO+"/"+customer_id, response -> {
+            try {
+                JSONObject res = new JSONObject(response);
+                db.addCustomerInfo(res.getInt("id"), res.getString("name"), res.toString());
+                getCustomers(res.getString("name"), "");
+                showSuccess(msg);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }, error -> {
+        });
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        stringRequest.setRetryPolicy(
+                new DefaultRetryPolicy(
+                        30000,
+                        1,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+                )
+        );
+        requestQueue.add(stringRequest);
+    }
+
+
+    public void getInformation(int id, int status, JSONObject resp){
+        StringRequest stringRequest = new StringRequest(URI.DOWNLOAD_ORDER_DETAIL+"/"+id, response -> {
+            try {
+                Log.e("HIT GET INFORMATION", "Yes");
+                JSONObject res = new JSONObject(response);
+                db.addOrders(res.getString("sale_no"), res.getInt("sale_no"), res.getInt("order_status"), res.toString(), res.getString("sale_date"));
+                if(status == 1){
+                    Intent intent = new Intent(this, OrderDetailActivity.class);
+                    intent.putExtra("order_id", res.getString("sale_no"));
+                    startActivity(intent);
+                    printTextWithHeader(resp.getString("header_invoice"), resp.getString("antrian"));
+                }else if(status == 2){
+                    Intent intent = new Intent(getApplicationContext(), OrderHistoryActivity.class);
+                    startActivity(intent);
+                    finish();
+                }else if(status == 3){
+                    printTextWithHeader(resp.getString("header_invoice"), resp.getString("antrian"));
+                    Intent intent = new Intent(getApplicationContext(), OrderHistoryActivity.class);
+                    startActivity(intent);
+                    finish();
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }, error -> {
+        });
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        stringRequest.setRetryPolicy(
+                new DefaultRetryPolicy(
+                        30000,
+                        1,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+                )
+        );
+        requestQueue.add(stringRequest);
+    }
 
     @SuppressLint("NonConstantResourceId")
     public void onRadioButtonClicked(View view) {
@@ -541,9 +631,10 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
 
     @SuppressLint("SetTextI18n")
     private void getOderCartList(String order_id) {
-        Log.e("UPDATE", URI.API_DETAIL_ORDER+order_id);
         progressBar.setVisibility(View.VISIBLE);
-        StringRequest stringRequest = new StringRequest(URI.API_DETAIL_ORDER + order_id, response -> {
+        List<Order> orderList = db.getOrderBySale(Integer.parseInt(order_id));
+        if(orderList.size() > 0){
+            String response = orderList.get(0).getOrder_details();
             try {
                 JSONObject jsonObject = new JSONObject(response);
 
@@ -552,67 +643,15 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
                 String getShipping = jsonObject.getString("logistic");
                 shipping.setText(getShipping);
 
-                if(!jsonObject.getString("cust_notes").equals("null")) {
-                    notes.setText(jsonObject.getString("cust_notes"));
-                } else {
-                    notes.setText("");
-                }
-                customerList.add(jsonObject.getString("customer_name"));
-                spinnerCustomer.setAdapter(new ArrayAdapter<>(getApplicationContext(), R.layout.spinner_item, customerList));
-                spinnerCustomer.setSelection(customerList.indexOf(jsonObject.getString("customer_name")));
-                selectCustomer.setText(jsonObject.getString("customer_name"));
-                param_customer_id = jsonObject.getString("customer_name");
-                getMenuList(param_customer_id, param_category, param_subcategory, param_label);
-
-                JSONArray jsonArray = jsonObject.getJSONArray("items");
-                //Log.e("RESPONSE", jsonArray.toString());
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject jo = jsonArray.getJSONObject(i);
-                    Cart listData = new Cart(jo.getInt("food_menu_id"), jo.getString("menu_name"), jo.getInt("menu_unit_price"), jo.getInt("menu_unit_price"), jo.getInt("qty"));
-                    list_cart.add(listData);
-                }
-                cartAdapter.notifyDataSetChanged();
-                int totalPrice = 0;
-                for (int i = 0; i < cartAdapter.getItemCount(); i++) {
-                    list_cart.get(i).setPrice(list_cart.get(i).getOriPrice() * list_cart.get(i).getQty());
-                    totalPrice += list_cart.get(i).getPrice();
-                }
-                String rupiah = formatRupiah.format(totalPrice).replace(',', '.');
-                totalCart.setText(getResources().getString(R.string.currency) + " " + rupiah);
-
-                if(update_order || split_bill) {
-                    getOderCartListSecond(order_id);
-                }
-                progressBar.setVisibility(View.GONE);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }, error -> progressBar.setVisibility(View.GONE));
-        requestQueue= Volley.newRequestQueue(this);
-        requestQueue.add(stringRequest);
-    }
-
-    @SuppressLint("SetTextI18n")
-    private void getOderCartListSecond(String order_id) {
-        Log.e("UPDATE", URI.API_DETAIL_ORDER+order_id);
-        progressBar.setVisibility(View.VISIBLE);
-        StringRequest stringRequest = new StringRequest(URI.API_DETAIL_ORDER + order_id, response -> {
-            try {
-                JSONObject jsonObject = new JSONObject(response);
-
-                Log.e("RESPONSE", response);
-
-                String getShipping = jsonObject.getString("logistic");
-                shipping.setText(getShipping);
-
-                if(!jsonObject.getString("cust_notes").equals("null")) {
+                if (!jsonObject.getString("cust_notes").equals("null")) {
                     notes.setText(jsonObject.getString("cust_notes"));
                 } else {
                     notes.setText("");
                 }
 
+                getCustomers(jsonObject.getString("customer_name"), "older");
+
                 JSONArray jsonArray = jsonObject.getJSONArray("items");
-                //Log.e("RESPONSE", jsonArray.toString());
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject jo = jsonArray.getJSONObject(i);
                     Cart listData = new Cart(jo.getInt("food_menu_id"), jo.getString("menu_name"), jo.getInt("menu_unit_price"), jo.getInt("menu_unit_price"), jo.getInt("qty"));
@@ -628,22 +667,24 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
                 totalCart.setText(getResources().getString(R.string.currency) + " " + rupiah);
 
                 int getDiscount = jsonObject.getInt("total_discount_amount");
-                if(getDiscount != 0) {
+                if (getDiscount != 0) {
                     param_discount_amount = getDiscount;
                 }
 
                 int getDiscountSalon = jsonObject.getInt("total_discount_salon_amount");
-                if(getDiscountSalon != 0) {
+                if (getDiscountSalon != 0) {
                     param_discount_salon_amount = getDiscountSalon;
                 }
 
                 progressBar.setVisibility(View.GONE);
             } catch (JSONException e) {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show();
                 e.printStackTrace();
             }
-        }, error -> progressBar.setVisibility(View.GONE));
-        requestQueue= Volley.newRequestQueue(this);
-        requestQueue.add(stringRequest);
+        }else{
+            progressBar.setVisibility(View.GONE);
+        }
     }
 
     public void customerListOnline(AlertDialog mAlertDialog, String param_keywords)
@@ -655,15 +696,14 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
             TextView plat_no = tableRow.findViewById(R.id.plat_no);
             TextView status = tableRow.findViewById(R.id.status);
             String name = "";
-            String splits = customerList.get(i);
             name = customerValuesList.get(i).getName();
             plat_no.setText(customerValuesList.get(i).getName());
             if(customerValuesList.get(i).getIs_member() == 1) {
-               status.setText("Member");
+                status.setText("Member");
             }
             String finalName = name;
             tableRow.setOnClickListener(view -> {
-                spinnerCustomer.setSelection(customerList.indexOf(finalName));
+                getCustomers(finalName, "");
                 mAlertDialog.dismiss();
             });
             customer.addView(tableRow);
@@ -751,41 +791,21 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         progressBar.setVisibility(View.GONE);
     }
 
-    private void getCustomers(String val_customer_name) {
+    private void getCustomers(String val_customer_name, String condition) {
         List <CustomerValues> customerValuesList = db.getAllCustomer(0, "");
-        for (int i=0; i<customerValuesList.size(); i++){
-            customerList.add(customerValuesList.get(i).getName());
+        if(val_customer_name.isEmpty()){
+            customerNew.setText(customerValuesList.get(0).getName());
+            param_customer_id = customerValuesList.get(0).getName();
+        }else{
+            customerNew.setText(val_customer_name);
+            param_customer_id = customerNew.getText().toString();
         }
+        list_cart.clear();
+        cartAdapter.notifyDataSetChanged();
+        onUpdatePrice(0);
 
-        if(update_order || split_bill) {
-            customerList.remove(param_customer_id);
-        } else {
-            spinnerCustomer.setAdapter(new ArrayAdapter<>(getApplicationContext(), R.layout.spinner_item, customerList));
-        }
-        if(!val_customer_name.isEmpty()) {
-            spinnerCustomer.setSelection(customerList.indexOf(val_customer_name));
-        }
-        getCategories();
-        spinnerCustomer.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                // your code here
-                getCustomerInfo(spinnerCustomer.getSelectedItem().toString());
-
-                list_cart.clear();
-                cartAdapter.notifyDataSetChanged();
-                onUpdatePrice(0);
-                customerNew.setText(spinnerCustomer.getSelectedItem().toString());
-                param_customer_id = spinnerCustomer.getSelectedItem().toString();
-                getMenuList(param_customer_id, param_category, param_subcategory, param_label);
-
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parentView) {
-                // your code here
-            }
-        });
+        getCustomerInfo(param_customer_id);
+        getMenuList(param_customer_id, param_category, param_subcategory, param_label);
     }
 
     private void getCustomerInfo(String customer_name) {
@@ -798,9 +818,10 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         TextView status_member = findViewById(R.id.status_member);
         TextView freeWashInfo = findViewById(R.id.free_wash_info);
         freeWashInfo.setText("Loading...");
-        StringRequest stringRequest = new StringRequest(URI.API_CUSTOMER_DETAIL+customer_name, response -> {
+        List<CustomerInfo> customerInfos = db.getCustomerInfo(customer_name);
+        if(customerInfos.size() > 0){
             try {
-                JSONObject jsonObject = new JSONObject(response);
+                JSONObject jsonObject = new JSONObject(customerInfos.get(0).getCustomer_info());
                 if(jsonObject.getBoolean("check_status") == true) {
                     lyt_no_member.setVisibility(View.GONE);
                     lyt_member.setVisibility(View.VISIBLE);
@@ -816,10 +837,7 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-        }, error -> {
-        });
-        requestQueue = Volley.newRequestQueue(this);
-        requestQueue.add(stringRequest);
+        }
     }
 
     private void getCategories() {
@@ -1006,38 +1024,18 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
     @Override
     public void onImageSelected(Product item) {
         showLoading();
-        StringRequest stringRequest = new StringRequest(URI.CHECK_INGREDIENT_STOCK+item.getId()+"?customer_name="+item.getCustomer_name(), response -> {
-            try {
-                hideLoading();
-                JSONObject jsonObject = new JSONObject(response);
-                if(jsonObject.getInt("ingredient_stock") == 0) {
-                    showError(getResources().getString(R.string.out_of_stock));
-                } else {
-                    InputMethodManager inputManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                    if (getCurrentFocus() != null) {
-                        inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-                    }
-                    recyclerMenu.requestFocus();
-                    addItem(item, jsonObject.getInt("new_price"));
-                }
-            } catch (JSONException e) {
-                hideLoading();
-                Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show();
-                throw new RuntimeException(e);
+        int info = new id.latenight.creativepos.model.CustomerInfo().getCustomerInfoPrice(item.getId(), param_customer_id, this);
+        if(item.getIngredient_stock() == 0){
+            showError(getResources().getString(R.string.out_of_stock));
+        }else{
+            InputMethodManager inputManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            if (getCurrentFocus() != null) {
+                inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
             }
-        }, error -> {
-            hideLoading();
-            Toast.makeText(this, error.toString(), Toast.LENGTH_SHORT).show();
-        });
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
-        stringRequest.setRetryPolicy(
-                new DefaultRetryPolicy(
-                        socketTimeout,
-                        maxRetries,
-                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
-                )
-        );
-        requestQueue.add(stringRequest);
+            recyclerMenu.requestFocus();
+            addItem(item, info);
+        }
+        hideLoading();
     }
 
     @SuppressLint("SetTextI18n")
@@ -1051,10 +1049,7 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         if(use_discount_jok) {
             removeDiscountJok();
         }
-        int valuePrice = item.getPrice();
-        if(newPrice!=0){
-            valuePrice = newPrice;
-        }
+        int  valuePrice = newPrice;
         Cart listData = new Cart(item.getId(), item.getTitle(), valuePrice, valuePrice, 1);
         list_cart.add(listData);
         cartAdapter.notifyItemChanged(-1);
@@ -1379,14 +1374,14 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         }
         StringRequest postRequest = new StringRequest(Request.Method.POST, URL_POST,
                 response -> {
-                    Log.e("RESPONSE ", response);
+                    Log.e("HIT GET PLACE ORDER", "Yes");
                     try {
                         hideLoading();
                         JSONObject jsonObject = new JSONObject(response);
                         boolean success = jsonObject.getBoolean("success");
                         if(success) {
-                            //Log.e("RESPONSE ", jsonObject.getString("sale_no") + " | "+ jsonObject.getString("sales_information"));
                             if(update_order) {
+                                db.deleteOrder(Integer.parseInt(jsonObject.getString("sale_no")));
                                 db.deleteSales(Integer.parseInt(jsonObject.getString("sale_no")));
                             }
                             db.addSales(jsonObject.getString("sale_no"), jsonObject.getString("sales_information"));
@@ -1394,18 +1389,11 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
                             list_cart.clear();
                             cartAdapter.notifyDataSetChanged();
                             if(update_order){
-                                Intent intent = new Intent(getApplicationContext(), OrderHistoryActivity.class);
-                                startActivity(intent);
-                                finish();
+                                getInformation(jsonObject.getInt("sale_no"), 2, jsonObject);
                             } else if(split_bill){
-                                Intent intent = new Intent(getApplicationContext(), OrderHistoryActivity.class);
-                                startActivity(intent);
-                                finish();
+                                getInformation(jsonObject.getInt("sale_no"), 2, jsonObject);
                             } else {
-                                printTextWithHeader(jsonObject.getString("header_invoice"), jsonObject.getString("antrian"));
-                                Intent intent = new Intent(getApplicationContext(), OrderHistoryActivity.class);
-                                startActivity(intent);
-                                finish();
+                                getInformation(jsonObject.getInt("sale_no"), 3, jsonObject);
                             }
                             discount.setText("");
                             notes.setText("");
@@ -1440,10 +1428,15 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
                 String customer_id = param_customer_id;
                 String waiter_id = sessionManager.getId();
                 String orders_table;
-                if(sessionManager.getOutlet().equals("3")) {
+
+                if (sessionManager.getOutlet().equals("3")) {
                     orders_table = "VIP 1";
                 } else {
-                    orders_table = spinnerTable.getSelectedItem().toString();
+                    List<Tables> tablesList = db.getAllTables();
+                    for (int i = 0; i < tablesList.size(); i++) {
+                        tableList.add(tablesList.get(i).getName());
+                    }
+                    orders_table = tablesList.get(0).getName();
                 }
 
                 String value_shipping = shipping.getText().toString();
@@ -1501,12 +1494,10 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
         showLoading();
         String URL_POST;
         URL_POST = URI.API_PLACE_ORDER;
-        //Log.e("POST ", URL_POST);
-
         StringRequest postRequest = new StringRequest(Request.Method.POST, URL_POST,
                 response -> {
-                    Log.e("RESPONSE ", response);
                     try {
+                        Log.e("HIT PAY ORDER", "Yes");
                         hideLoading();
                         JSONObject jsonObject = new JSONObject(response);
                         boolean success = jsonObject.getBoolean("success");
@@ -1519,10 +1510,7 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
                             discount.setText("");
                             notes.setText("");
                             totalCart.setText("Rp. 0");
-                            Intent intent = new Intent(this, OrderDetailActivity.class);
-                            intent.putExtra("order_id", jsonObject.getString("sale_no"));
-                            startActivity(intent);
-                            printTextWithHeader(jsonObject.getString("header_invoice"), jsonObject.getString("antrian"));
+                            getInformation(jsonObject.getInt("sale_no"), 1, jsonObject);
                         } else {
                             showError(jsonObject.getString("message"));
                         }
@@ -1553,10 +1541,15 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
                 String customer_id = param_customer_id;
                 String waiter_id = sessionManager.getId();
                 String orders_table;
-                if(sessionManager.getOutlet().equals("3")) {
+
+                if (sessionManager.getOutlet().equals("3")) {
                     orders_table = "VIP 1";
                 } else {
-                    orders_table = spinnerTable.getSelectedItem().toString();
+                    List<Tables> tablesList = db.getAllTables();
+                    for (int i = 0; i < tablesList.size(); i++) {
+                        tableList.add(tablesList.get(i).getName());
+                    }
+                    orders_table = tablesList.get(0).getName();
                 }
                 String value_shipping = shipping.getText().toString();
                 String value_notes = notes.getText().toString();
@@ -1602,8 +1595,8 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.Im
             }
         };
         postRequest.setRetryPolicy(new DefaultRetryPolicy(
-                0,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                30000,
+                1,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         Volley.newRequestQueue(getApplicationContext()).add(postRequest);
     }
